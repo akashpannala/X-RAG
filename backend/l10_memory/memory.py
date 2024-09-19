@@ -28,11 +28,14 @@ def rewrite_with_memory(query: str, user_id: int | None) -> str:
     hist = recent_queries(user_id)
     if not hist:
         return query
-    from backend.l18_generation.llm import get_llm
+    from backend.l17_generation.llm import get_llm
 
-    msg = get_llm().invoke(
-        "Rewrite the LAST question as standalone, using conversation history. "
-        "If already standalone, repeat it unchanged. Reply with ONLY the question.\n"
-        f"History:\n" + "\n".join(f"- {h}" for h in hist) + f"\nLast: {query}")
-    text = msg.content if isinstance(msg.content, str) else str(msg.content)
-    return text.strip().splitlines()[0] if text.strip() else query
+    try:
+        msg = get_llm().invoke(
+            "Rewrite the LAST question as standalone, using conversation history. "
+            "If already standalone, repeat it unchanged. Reply with ONLY the question.\n"
+            f"History:\n" + "\n".join(f"- {h}" for h in hist) + f"\nLast: {query}")
+        text = msg.content if isinstance(msg.content, str) else str(msg.content)
+        return text.strip().splitlines()[0] if text.strip() else query
+    except Exception:
+        return query

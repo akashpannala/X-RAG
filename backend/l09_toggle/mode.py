@@ -1,7 +1,7 @@
 """L9 toggle — manual Quick/Deep only. Role default, per-query override. No ML."""
 import logging
 
-from backend.l15_security.auth import default_mode
+from backend.l14_security.auth import default_mode
 
 _logger = logging.getLogger(__name__)  # ponytail: manual toggle, role-defaults not restrictions
 

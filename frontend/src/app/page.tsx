@@ -45,7 +45,6 @@ export default function Home() {
   const [upGroups, setUpGroups] = useState("public");
   const [upFile, setUpFile] = useState<File | null>(null);
   const [upMsg, setUpMsg] = useState("");
-  const [evalOut, setEvalOut] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -109,16 +108,6 @@ export default function Home() {
       setUpMsg(e instanceof Error ? e.message : "Upload failed.");
     }
   }, [upFile, upGroups]);
-
-  const runEval = useCallback(async () => {
-    setEvalOut("Scoring…");
-    try {
-      const r = await api.ragas(20);
-      setEvalOut(JSON.stringify(r, null, 2));
-    } catch (e) {
-      setEvalOut(e instanceof Error ? e.message : "Eval failed.");
-    }
-  }, []);
 
   if (!token || !role) {
     return (
@@ -294,16 +283,8 @@ export default function Home() {
           </div>
 
           <div className="card">
-            <h2>Answer quality</h2>
-            <p className="muted">Background faithfulness scores, aggregated offline.</p>
-            <button className="btn-ghost btn" onClick={runEval}>
-              Score recent answers
-            </button>
-            {evalOut && (
-              <pre className="muted" style={{ whiteSpace: "pre-wrap", fontSize: "0.8rem" }}>
-                {evalOut}
-              </pre>
-            )}
+            <h2>Documents</h2>
+            <p className="muted">Upload restricted to allowed groups. Department isolation enforced at retrieval.</p>
           </div>
         </aside>
       </div>

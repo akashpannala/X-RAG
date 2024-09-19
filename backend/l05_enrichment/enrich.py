@@ -15,7 +15,7 @@ def _strip_numbering(s: str) -> str:
     return _Q.sub("", s).strip()
 
 
-from backend.l18_generation.llm import get_llm
+from backend.l17_generation.llm import get_llm
 
 
 def summarize_cluster(texts: list[str]) -> str:

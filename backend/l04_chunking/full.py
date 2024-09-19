@@ -17,21 +17,20 @@ _base = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
 _sent = re.compile(r"(?<=[.!?])\s+")
 
 
-def late_chunks(text: str, size: int = 2000) -> list[str]:
+def late_chunks(text: str, size: int = 2000):
     """Late Chunking: embed whole doc with BGE-M3 long ctx then mean-pool per chunk span.
-    Remote embed (EMBED_URL/choreo) has no tokenizer — skips pooling, plain split.
-    ponytail: returns texts identical; pooled vectors computed but texts returned (late-pooled by construction).
-    If you need vectors, change to return (texts, pooled) and wire to Qdrant.
+    Returns (texts, pooled_vectors) where pooled_vectors are the late-pooled embeddings.
+    Remote embed (EMBED_URL/choreo) has no tokenizer — returns (parts, None).
     """
     parts = _base.split_text(text)
     if len(parts) < 2:
-        return parts
+        return parts, None
     # remote has no tokenizer/model — skip heavy work
     from backend.config import settings
 
     if settings.embed_url or settings.embed_provider == "choreo":
         _logger.info("late_chunks: remote embed, skipping token-pool, plain split")
-        return parts
+        return parts, None
     try:
         from backend.l06_embedding.bge import get_embeddings
 
@@ -55,10 +54,12 @@ def late_chunks(text: str, size: int = 2000) -> list[str]:
                 pooled.append(out[0, idx].mean(0))
                 start = idx[-1] + 1
         if len(pooled) == len(parts):
-            return parts  # texts identical; embeddings are late-pooled by construction
+            import numpy as np
+            pooled_arr = [p.cpu().numpy() for p in pooled]
+            return parts, pooled_arr
     except Exception as e:
         _logger.warning("late_chunks fallback to plain split: %s", e)
-    return parts
+    return parts, None
 
 
 def semantic_chunks(text: str, threshold: float = 0.55) -> list[str]:
@@ -112,7 +113,7 @@ def window_chunks(text: str, window: int = 2) -> list[str]:
 def propositional_chunks(text: str) -> list[str]:
     """LLM atomic claims (one fact each). Enrich-gated: costs LLM calls."""
     # ponytail: sequential invokes; batch/async if enrich latency matters on local Ollama
-    from backend.l18_generation.llm import get_llm
+    from backend.l17_generation.llm import get_llm
 
     parts = _base.split_text(text)
     if len(parts) > 20:
@@ -129,7 +130,7 @@ def propositional_chunks(text: str) -> list[str]:
 def contextual_chunks(text: str, doc_title: str = "") -> list[str]:
     """LLM situating header prepended to each chunk (Anthropic contextual)."""
     # ponytail: sequential invokes; batch/async if enrich latency matters
-    from backend.l18_generation.llm import get_llm
+    from backend.l17_generation.llm import get_llm
 
     parts = _base.split_text(text)
     if len(parts) > 20:
@@ -144,20 +145,27 @@ def contextual_chunks(text: str, doc_title: str = "") -> list[str]:
     return out or _base.split_text(text)
 
 
-def full_chunk(text: str, doc_title: str = "", enrich_llm: bool = True) -> list[str]:
-    """All strategies merged, deduped. enrich_llm=False skips the two LLM strategies
-    for late+semantic+parent+window only (partial enrich without 40 LLM calls)."""
-    pooled = late_chunks(text) + semantic_chunks(text) + [c for _, kids in parent_chunks(text) for c in kids] + window_chunks(text)[:50]
+def full_chunk(text: str, doc_title: str = "", enrich_llm: bool = True):
+    """All strategies merged, deduped. Returns (texts, late_vectors) where late_vectors
+    are the pooled embeddings from late_chunks (aligned to late_chunks texts).
+    enrich_llm=False skips the two LLM strategies for late+semantic+parent+window only."""
+    late_texts, late_vecs = late_chunks(text)
+    pooled_texts = late_texts + semantic_chunks(text) + [c for _, kids in parent_chunks(text) for c in kids] + window_chunks(text)[:50]
     if enrich_llm:
-        pooled += propositional_chunks(text) + contextual_chunks(text, doc_title)
+        pooled_texts += propositional_chunks(text) + contextual_chunks(text, doc_title)
     seen: set[str] = set()
-    out: list[str] = []
-    for chunk in pooled:
+    out_texts: list[str] = []
+    out_late_vecs: list = []
+    late_set = set(late_texts)
+    for chunk in pooled_texts:
         stripped = chunk.strip()
         if not stripped:
             continue
-        # ponytail: exact dedup on full text (was chunk[:120] — false merges on shared 120-char prefix; use MinHash in L3 for near-dup)
         if stripped not in seen:
             seen.add(stripped)
-            out.append(chunk)
-    return out
+            out_texts.append(chunk)
+            if chunk in late_set and late_vecs:
+                idx = late_texts.index(chunk)
+                if idx < len(late_vecs):
+                    out_late_vecs.append(late_vecs[idx])
+    return out_texts, out_late_vecs

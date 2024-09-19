@@ -1,7 +1,7 @@
-"""All routes — /health, /auth/*, /ingest, /query, /eval/ragas. Swagger at /docs."""
+"""All routes — /health, /auth/*, /ingest, /query. Swagger at /docs."""
 from pathlib import Path
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -12,8 +12,8 @@ from backend.l03_cleaning.cleaning import redact
 from backend.l07_storage import qdrant as store
 from backend.l07_storage.kuzu_min import record as kuzu_record
 from backend.l08_freshness.store import jdump, meta_conn, sha256_file
-from backend.l20_cache.cache import clear as clear_cache
-from backend.l15_security.auth import (
+from backend.l19_cache.cache import clear as clear_cache
+from backend.l14_security.auth import (
     LoginRequest,
     RegisterRequest,
     User,
@@ -21,8 +21,9 @@ from backend.l15_security.auth import (
     create_user,
     current_user,
     mint,
+    _ph_n,
 )
-from backend.l18_generation.graph import answer
+from backend.l17_generation.graph import answer
 
 
 class QueryRequest(BaseModel):
@@ -65,8 +66,8 @@ Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "llm": settings.llm_provider, "vector_store": settings.vector_store_provider,
-            "qdrant": settings.qdrant_url, "db": "postgres" if settings.database_url else "sqlite"}
+    return {"status": "ok", "llm": settings.llm_provider, "vector_store": "qdrant",
+            "qdrant": settings.vector_base_url, "db": "postgres" if settings.db_url else "sqlite"}
 
 
 @app.post("/auth/register")
@@ -89,6 +90,7 @@ def login(req: LoginRequest):
 @app.post("/ingest", response_model=IngestResponse)
 def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
            user: User = Depends(current_user)):
+    from backend.config import settings
     groups = [g.strip() for g in allowed_groups.split(",") if g.strip()]
     dest = Path(settings.upload_dir) / f.filename
     check_supported(dest)
@@ -111,9 +113,10 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
     if enrich:
         from backend.l04_chunking.full import full_chunk
 
-        chunks = full_chunk(text, dest.stem)
+        chunks, late_vecs = full_chunk(text, dest.stem)
     else:
         chunks = basic_chunk(text)
+        late_vecs = None
     payloads = [{"doc": dest.stem, "chunk_id": i, "text": c, "allowed_groups": groups}
                 for i, c in enumerate(chunks)]
     texts = list(chunks)
@@ -131,15 +134,43 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
         for q in hypothetical_questions(dest.stem, chunks[0]):
             texts.append(f"[answers in {dest.stem}] {q}")
             payloads.append({"doc": dest.stem, "chunk_id": 0, "text": q, "allowed_groups": groups})
-    store.add_docs(texts, payloads)
+    # Build vectors: use late_chunk pooled vectors for late_chunks texts, compute rest
+    vectors = None
+    if late_vecs:
+        from backend.l06_embedding.bge import get_embeddings
+        emb = get_embeddings(settings.embed_model)
+        # late_vecs aligns with late_chunks texts which are first in chunks
+        # But chunks is deduped, so need to match by text
+        late_texts_set = set()
+        # Re-get late_chunks texts to know which ones have vectors
+        from backend.l04_chunking.full import late_chunks
+        late_texts, _ = late_chunks(text)
+        late_texts_set = set(late_texts)
+        vectors = []
+        for t in texts:
+            if t in late_texts_set:
+                idx = late_texts.index(t)
+                if idx < len(late_vecs):
+                    vectors.append(late_vecs[idx].tolist() if hasattr(late_vecs[idx], 'tolist') else late_vecs[idx])
+                else:
+                    vectors.append(None)
+            else:
+                vectors.append(None)
+        # Replace None with computed embeddings
+        to_embed = [t[:2000] for t, v in zip(texts, vectors) if v is None]
+        if to_embed:
+            computed = emb.embed_documents(to_embed)
+            it = iter(computed)
+            vectors = [v if v is not None else next(it) for v in vectors]
+    store.add_docs(texts, payloads, vectors)
     try:
-        from backend.l06_sparse.bm25 import add as bm25_add
+        from backend.L06_sparse.bm25 import add as bm25_add
 
         bm25_add(texts, payloads)
     except Exception:
         pass
     try:
-        from backend.l06_sparse.splade import add as splade_add
+        from backend.L06_sparse.splade import add as splade_add
 
         splade_add(texts, payloads)
     except Exception:
@@ -153,8 +184,14 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
             record_ent(dest.stem, ent, label)
     except Exception:
         pass
-    con = meta_conn(settings.sqlite_path)
-    con.execute("INSERT OR REPLACE INTO documents(filename, allowed_groups_json, hash) VALUES (?,?,?)",
+    con = meta_conn(settings.db_path)
+    ph = _ph_n(con, 3)
+    con.execute(f"""
+        INSERT INTO documents(filename, allowed_groups_json, hash) VALUES ({ph})
+        ON CONFLICT (filename) DO UPDATE SET
+            allowed_groups_json = EXCLUDED.allowed_groups_json,
+            hash = EXCLUDED.hash
+        """,
                 (f.filename, jdump(groups), h))
     con.commit()
     con.close()
@@ -162,30 +199,12 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
     return IngestResponse(filename=f.filename, chunks=len(texts), hash=h[:12])
 
 
-def _judge_and_score(conv_id: int, query: str, ans: str, cites: list[str]):
-    """Background faithfulness judge — runs out-of-band, never blocks the reply."""
-    from backend.l21_eval.eval import judge_score, record_score
-
-    record_score(conv_id, judge_score(query, ans, cites))
-
-
 @app.post("/query", response_model=QueryResponse)
-def query(req: QueryRequest, bg: BackgroundTasks, user: User = Depends(current_user)):
-    from backend.l21_eval.eval import log_conversation
-
+def query(req: QueryRequest, user: User = Depends(current_user)):
     text, cites, contexts, mode, hit, verif = answer(
         req.query, req.top_k, user.groups, req.mode, user.id)
-    cid = log_conversation(user.id, req.query, text, mode, contexts)
-    bg.add_task(_judge_and_score, cid, req.query, text, cites)
     return QueryResponse(answer=text, citations=cites, provider=settings.llm_provider,
-                         mode=mode, cache_hit=hit, verification=verif)
-
-
-@app.post("/eval/ragas")
-def eval_ragas(limit: int = 20, user: User = Depends(current_user)):
-    from backend.l21_eval.eval import ragas_offline
-
-    return ragas_offline(limit)
+                          mode=mode, cache_hit=hit, verification=verif)
 
 
 @app.get("/ops/telemetry")
@@ -193,7 +212,7 @@ def telemetry(rows: int = 50, user: User = Depends(current_user)):
     from backend.config import settings
     from backend.l08_freshness.store import meta_conn
 
-    con = meta_conn(settings.sqlite_path)
+    con = meta_conn(settings.db_path)
     try:
         out = con.execute(
             "SELECT mode, cache_hit, latency_ms, n_queries, n_hits, rerank_stage,"

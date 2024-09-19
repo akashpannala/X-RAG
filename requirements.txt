@@ -10,7 +10,8 @@ httpx>=0.27
 rich>=13.0
 qdrant-client>=1.9
 kuzu>=0.6
-watchdog>=4.0
+pgvector>=0.2
+psycopg[binary]>=3.1
 datasketch>=1.6
 bm25s>=0.3
 sentencepiece>=0.2
@@ -26,12 +27,13 @@ langchain-groq==1.1.3
 langchain-ollama==1.1.0
 langchain-huggingface==1.2.2
 langchain-text-splitters==1.1.2
+langchain-anthropic>=0.2
+langchain-openai>=0.2
 langgraph==1.2.11
 PyJWT==2.14.0
 passlib==1.7.4
 bcrypt==4.0.1  # passlib 1.7.4 reads bcrypt.__about__ (gone in bcrypt>=4.1)
 numpy==2.4.6
-# ragas pinned but import-broken vs sunset langchain-community 0.4.2;
-# l21_eval falls back to judge aggregates until upstream stabilizes
-ragas==0.4.3
-datasets==5.0.1
+rapidocr-onnxruntime>=1.2
+spacy>=3.8
+transformers>=4.42

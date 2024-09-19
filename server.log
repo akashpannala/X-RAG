@@ -1,0 +1,13 @@
+INFO:     Started server process [119354]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:45210 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49602 - "POST /auth/login HTTP/1.1" 200 OK
+Preset 'granite_vision_v4' already registered for ChartExtractionVlmEngineOptions
+Split strings:   0%|          | 0/10 [00:00<?, ?it/s]                                                     Split strings:   0%|          | 0/38 [00:00<?, ?it/s]                                                     BM25S Count Tokens:   0%|          | 0/38 [00:00<?, ?it/s]                                                          BM25S Compute Scores:   0%|          | 0/38 [00:00<?, ?it/s]                                                            Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/204 [00:00<?, ?it/s]Loading weights: 100%|██████████| 204/204 [00:00<00:00, 21502.76it/s]
+using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+INFO:     127.0.0.1:49610 - "POST /ingest HTTP/1.1" 200 OK
+Split strings:   0%|          | 0/1 [00:00<?, ?it/s]                                                    BM25S Retrieve:   0%|          | 0/1 [00:00<?, ?it/s]                                                     Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 3497.09it/s]
+INFO:     127.0.0.1:46512 - "POST /query HTTP/1.1" 200 OK

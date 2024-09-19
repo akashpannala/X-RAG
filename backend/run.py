@@ -7,7 +7,7 @@ from pathlib import Path
 import uvicorn
 
 from backend.config import check_requirements
-from backend.l18_generation.graph import get_graph
+from backend.l17_generation.graph import get_graph
 
 
 def setup_logging() -> None:
@@ -27,7 +27,7 @@ def setup_logging() -> None:
 
 
 def seed() -> None:
-    from backend.l15_security.auth import create_user
+    from backend.l14_security.auth import create_user
 
     for username, password, groups in [
         ("admin", "admin123", ["hr", "eng", "public"]),
@@ -35,7 +35,7 @@ def seed() -> None:
         ("eng_bob", "eng12345", ["eng", "public"]),
     ]:
         try:
-            create_user(username, password, groups)
+            create_user(username, password, groups, force_groups=True)
             print(f"created {username} {groups}")
         except ValueError as e:
             print(f"skip: {e}")

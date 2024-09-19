@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 _logger = logging.getLogger(__name__)
-_schema_done = False  # ponytail: avoid re-running CREATE TABLE ×6 per call (esp. Postgres TCP)
+_schema_done = False  # ponytail: avoid re-running CREATE TABLE ×4 per call (esp. Postgres TCP)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users(
@@ -20,12 +20,6 @@ CREATE TABLE IF NOT EXISTS query_telemetry(
   id INTEGER PRIMARY KEY, user_id INTEGER, mode TEXT, cache_hit INTEGER,
   latency_ms REAL, n_queries INTEGER, n_hits INTEGER, rerank_stage TEXT,
   supported_ratio REAL, provider TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-CREATE TABLE IF NOT EXISTS eval_goldens(
-  id INTEGER PRIMARY KEY, query TEXT UNIQUE, golden_answer TEXT,
-  gold_cites_json TEXT, groups_json TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-CREATE TABLE IF NOT EXISTS mined_hard_negatives(
-  id INTEGER PRIMARY KEY, query TEXT, doc TEXT, chunk_id INTEGER,
-  label_json TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 """
 
 
@@ -42,18 +36,20 @@ def _is_postgres_url(url: str) -> bool:
 
 
 def meta_conn(path: str | None = None):
-    """Env-driven: if DATABASE_URL is postgres/supabase, use psycopg; else sqlite at path/SQLITE_PATH."""
+    """Env-driven: if DB_URL is postgres/supabase, use psycopg; else sqlite at path/DB_PATH."""
     global _schema_done
     from backend.config import settings
 
-    db_url = (settings.database_url or "").strip()
-    if _is_postgres_url(db_url):
+    db_url = (settings.db_url or "").strip()
+    if settings.db_provider in ("postgres", "supabase") and db_url:
+        if not _is_postgres_url(db_url):
+            raise RuntimeError("DB_URL must be postgresql:// for postgres/supabase provider")
         try:
             import psycopg
 
             c = psycopg.connect(db_url)
         except ImportError:
-            raise RuntimeError("psycopg not installed — pip install psycopg[binary] for postgres DATABASE_URL")
+            raise RuntimeError("psycopg not installed — pip install psycopg[binary] for postgres DB_URL")
         except Exception as e:
             raise RuntimeError(f"postgres connect failed for {db_url[:30]}...: {e}") from e
         if not _schema_done:
@@ -77,8 +73,8 @@ def meta_conn(path: str | None = None):
                 _logger.warning("postgres migration check failed: %s", e)
             _schema_done = True
         return c
-    # SQLite path (also used by l20_cache)
-    sqlite_path = path or settings.sqlite_path
+    # SQLite path (also used by l19_cache)
+    sqlite_path = path or settings.db_path
     c = sqlite3.connect(sqlite_path)
     if not _schema_done:
         c.executescript(SCHEMA)

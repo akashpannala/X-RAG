@@ -64,12 +64,6 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query, top_k, mode }),
     }),
-  ragas: (limit = 20) =>
-    req("/eval/ragas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ limit }),
-    }),
 };
 
 export function decodeRole(token: string): Role | null {
