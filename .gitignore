@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/uploads/*
+!data/uploads/.gitkeep
+data/qdrant_storage/*
+!data/qdrant_storage/.gitkeep
+data/kuzu/*
+!data/kuzu/*.gitkeep
+data/meta.db
+vendor/
+models/
