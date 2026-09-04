@@ -25,3 +25,11 @@ langchain-ollama==1.1.0
 langchain-huggingface==1.2.2
 langchain-text-splitters==1.1.2
 langgraph==1.2.11
+PyJWT==2.14.0
+passlib==1.7.4
+bcrypt==4.0.1  # passlib 1.7.4 reads bcrypt.__about__ (gone in bcrypt>=4.1)
+numpy==2.4.6
+# ragas pinned but import-broken vs sunset langchain-community 0.4.2;
+# l21_eval falls back to judge aggregates until upstream stabilizes
+ragas==0.4.3
+datasets==5.0.1

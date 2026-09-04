@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     embed_model: str = "BAAI/bge-m3"
     upload_dir: str = "data/uploads"
     sqlite_path: str = "data/meta.db"
+    jwt_secret: str = "change-me-in-env"
+    jwt_expire_min: int = 480
+    default_mode_by_group: str = '{"hr": "quick", "eng": "deep", "public": "quick"}'
 
 
 settings = Settings()

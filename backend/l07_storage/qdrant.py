@@ -6,7 +6,7 @@ langchain-qdrant was dropped on purpose: it only round-trips its own
 import uuid
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import Distance, Filter, PointStruct, VectorParams
 
 from backend.config import settings
 from backend.l06_embedding.bge import get_embeddings
@@ -30,16 +30,18 @@ def add_docs(texts: list[str], payloads: list[dict]) -> None:
     ensure_collection(len(vecs[0]))
     _client().upsert(settings.qdrant_collection, [
         PointStruct(id=str(uuid.uuid4()), vector=v,
-                    payload={"doc": p["doc"], "chunk_id": p["chunk_id"], "text": p["text"][:2000]})
+                    payload={"doc": p["doc"], "chunk_id": p["chunk_id"], "text": p["text"][:2000],
+                             "allowed_groups": list(p.get("allowed_groups", ["public"]))})
         for v, p in zip(vecs, payloads)
     ])
 
 
-def search(query: str, top_k: int) -> list[dict]:
+def search(query: str, top_k: int, qfilter: Filter | None = None) -> list[dict]:
     try:
         qv = get_embeddings(settings.embed_model).embed_query(query)
         hits = _client().query_points(
-            collection_name=settings.qdrant_collection, query=qv, limit=top_k).points
+            collection_name=settings.qdrant_collection, query=qv,
+            limit=top_k, query_filter=qfilter).points
     except Exception:
         return []
     return [{"doc": h.payload.get("doc", "?"), "chunk_id": h.payload.get("chunk_id", 0),
