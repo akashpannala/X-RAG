@@ -38,6 +38,7 @@ class QueryResponse(BaseModel):
     provider: str = ""
     mode: str = ""
     cache_hit: bool = False
+    verification: dict = {}
 
 
 class IngestRequest(BaseModel):
@@ -113,11 +114,18 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
             payloads.append({"doc": dest.stem, "chunk_id": 0, "text": q, "allowed_groups": groups})
     store.add_docs(texts, payloads)
     try:
+        from backend.l06_sparse.bm25 import add as bm25_add
+
+        bm25_add(texts, payloads)
+    except Exception:
+        pass
+    try:
         from backend.l05_enrichment.enrich import extract_entities
+        from backend.l07_storage.kuzu_min import record_ent
 
         kuzu_record(dest.stem, len(chunks))
         for ent, label in extract_entities(text):
-            kuzu_record(f"{label}:{ent}", 0)
+            record_ent(dest.stem, ent, label)
     except Exception:
         pass
     con = meta_conn(settings.sqlite_path)
@@ -139,11 +147,12 @@ def _judge_and_score(conv_id: int, query: str, ans: str, cites: list[str]):
 def query(req: QueryRequest, bg: BackgroundTasks, user: User = Depends(current_user)):
     from backend.l21_eval.eval import log_conversation
 
-    text, cites, contexts, mode, hit = answer(req.query, req.top_k, user.groups, req.mode)
+    text, cites, contexts, mode, hit, verif = answer(
+        req.query, req.top_k, user.groups, req.mode, user.id)
     cid = log_conversation(user.id, req.query, text, mode, contexts)
     bg.add_task(_judge_and_score, cid, req.query, text, cites)
     return QueryResponse(answer=text, citations=cites, provider=settings.llm_provider,
-                         mode=mode, cache_hit=hit)
+                         mode=mode, cache_hit=hit, verification=verif)
 
 
 @app.post("/eval/ragas")

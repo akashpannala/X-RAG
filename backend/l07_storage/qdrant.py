@@ -6,7 +6,7 @@ langchain-qdrant was dropped on purpose: it only round-trips its own
 import uuid
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, Filter, PointStruct, VectorParams
+from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
 
 from backend.config import settings
 from backend.l06_embedding.bge import get_embeddings
@@ -46,6 +46,18 @@ def search(query: str, top_k: int, qfilter: Filter | None = None) -> list[dict]:
         return []
     return [{"doc": h.payload.get("doc", "?"), "chunk_id": h.payload.get("chunk_id", 0),
              "text": h.payload.get("text", ""), "score": h.score} for h in hits]
+
+
+def fetch_by_doc(doc: str, groups: list[str], n: int) -> list[dict]:
+    """Top-n chunks of one doc, ACL-respecting. Feeds graph/SQL agents."""
+    from backend.l15_security.acl import groups_filter
+
+    filt = groups_filter(groups)
+    filt.must.append(FieldCondition(key="doc", match=MatchValue(value=doc)))
+    pts, _ = _client().scroll(settings.qdrant_collection, scroll_filter=filt,
+                              limit=n, with_payload=True)
+    return [{"doc": p.payload.get("doc", "?"), "chunk_id": p.payload.get("chunk_id", 0),
+             "text": p.payload.get("text", ""), "score": 0.5} for p in pts]
 
 
 def reset_collection() -> None:
