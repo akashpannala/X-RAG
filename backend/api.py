@@ -2,6 +2,7 @@
 from pathlib import Path
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from backend.config import settings
@@ -12,6 +13,7 @@ from backend.l04_chunking.splitter import chunk
 from backend.l07_storage import qdrant as store
 from backend.l07_storage.kuzu_min import record as kuzu_record
 from backend.l08_freshness.store import jdump, meta_conn, sha256_file
+from backend.l20_cache.cache import clear as clear_cache
 from backend.l15_security.auth import (
     LoginRequest,
     RegisterRequest,
@@ -50,6 +52,13 @@ class IngestResponse(BaseModel):
 
 
 app = FastAPI(title="OFFLINE-RAG Phase 2")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 
 
@@ -116,6 +125,7 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
                 (f.filename, jdump(groups), h))
     con.commit()
     con.close()
+    clear_cache()  # vectors changed — cached answers may cite stale permissions
     return IngestResponse(filename=f.filename, chunks=len(texts), hash=h[:12])
 
 

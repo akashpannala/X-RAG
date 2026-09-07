@@ -73,10 +73,17 @@ def check_requirements() -> bool:
     try:
         import spacy
 
-        spacy.load("en_core_web_lg")
-        rows.append(("spaCy PII model", True, "en_core_web_lg"))
-    except Exception:
-        rows.append(("spaCy PII model", False, "auto-downloads on first ingest (slow once)"))
+        for model in ("en_core_web_sm", "en_core_web_lg"):
+            try:
+                spacy.load(model)
+                rows.append(("spaCy PII model", True, model))
+                break
+            except Exception:
+                continue
+        else:
+            rows.append(("spaCy PII model", False, "auto-downloads on first ingest (slow once)"))
+    except ImportError:
+        rows.append(("spaCy PII model", False, "uv pip install presidio-analyzer"))
 
     rows.append((
         "BGE-M3",

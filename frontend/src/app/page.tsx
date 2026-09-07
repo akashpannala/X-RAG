@@ -41,6 +41,7 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [login, setLogin] = useState({ u: "", p: "" });
+  const [showPw, setShowPw] = useState(false);
   const [upGroups, setUpGroups] = useState("public");
   const [upFile, setUpFile] = useState<File | null>(null);
   const [upMsg, setUpMsg] = useState("");
@@ -73,6 +74,9 @@ export default function Home() {
       const t: string = r.access_token;
       setTok(t);
       setRole(decodeRole(t));
+      setMsgs([]);
+      setInput("");
+      setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign in failed.");
     }
@@ -137,14 +141,49 @@ export default function Home() {
               onChange={(e) => setLogin({ ...login, u: e.target.value })}
               autoComplete="username"
             />
-            <input
-              className="field"
-              type="password"
-              placeholder="Password"
-              value={login.p}
-              onChange={(e) => setLogin({ ...login, p: e.target.value })}
-              autoComplete="current-password"
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                className="field"
+                type={showPw ? "text" : "password"}
+                placeholder="Password"
+                value={login.p}
+                onChange={(e) => setLogin({ ...login, p: e.target.value })}
+                autoComplete="current-password"
+                style={{ paddingRight: "2.6rem" }}
+              />
+              <button
+                type="button"
+                aria-label={showPw ? "Hide password" : "Show password"}
+                aria-pressed={showPw}
+                onClick={() => setShowPw((v) => !v)}
+                style={{
+                  position: "absolute",
+                  right: "0.4rem",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "transparent",
+                  border: 0,
+                  color: "var(--ink-dim)",
+                  cursor: "pointer",
+                  padding: "0.3rem",
+                  lineHeight: 0,
+                }}
+              >
+                {showPw ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                    <path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68" />
+                    <path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61" />
+                    <line x1="2" x2="22" y1="2" y2="22" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
             <button className="btn" type="submit">
               Sign in
             </button>

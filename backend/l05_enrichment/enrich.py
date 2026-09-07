@@ -28,10 +28,19 @@ def hypothetical_questions(doc: str, sample: str, n: int = 3) -> list[str]:
 
 
 def extract_entities(text: str) -> list[tuple[str, str]]:
+    """Prefer the small spaCy model (~12MB RAM); lg vectors cost ~1GB."""
     try:
         import spacy
 
-        doc = spacy.load("en_core_web_lg")(text[:20000])
+        for model in ("en_core_web_sm", "en_core_web_lg"):
+            try:
+                nlp = spacy.load(model)
+                break
+            except OSError:
+                continue
+        else:
+            return []
+        doc = nlp(text[:20000])
         return [(e.text[:80], e.label_) for e in doc.ents]
     except Exception:
         return []

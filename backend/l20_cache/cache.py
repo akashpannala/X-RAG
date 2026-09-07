@@ -1,4 +1,9 @@
-"""L20: SQLite answer cache (cosine>0.96 short-circuit) + embedding LRU."""
+"""L20: SQLite answer cache (cosine>0.96 short-circuit) + embedding LRU.
+
+Keys are `<queryhash>|<mode>|<groups>` so each role/mode partition is
+isolated; clear() runs on every ingest so permission changes can't leak
+through stale rows.
+"""
 import functools
 import hashlib
 import json
@@ -20,7 +25,8 @@ def _conn():
 
 
 def _key(query: str, mode: str, groups: list[str]) -> str:
-    return hashlib.sha256(f"{query}\x00{mode}\x00{','.join(sorted(groups))}".encode()).hexdigest()
+    qh = hashlib.sha256(query.encode()).hexdigest()
+    return f"{qh}|{mode}|{','.join(sorted(groups))}"
 
 
 @functools.lru_cache(maxsize=512)
@@ -30,11 +36,6 @@ def _embed_cached(model_name: str, text: str) -> tuple:
 
 def embed_cached(text: str) -> list[float]:
     return list(_embed_cached(settings.embed_model, text))
-
-
-def _key(query: str, mode: str, groups: list[str]) -> str:
-    qh = hashlib.sha256(query.encode()).hexdigest()
-    return f"{qh}|{mode}|{','.join(sorted(groups))}"
 
 
 def lookup(query: str, mode: str, groups: list[str]) -> tuple[str, list[str]] | None:
@@ -68,5 +69,16 @@ def store(query: str, mode: str, groups: list[str], answer: str, cites: list[str
         con.execute("DELETE FROM answer_cache WHERE key NOT IN "
                     "(SELECT key FROM answer_cache ORDER BY rowid DESC LIMIT 500)")
         con.commit()
+    finally:
+        con.close()
+
+
+def clear() -> int:
+    """Drop all cached answers. Called on ingest — vectors changed, rows stale."""
+    con = _conn()
+    try:
+        n = con.execute("DELETE FROM answer_cache").rowcount
+        con.commit()
+        return n
     finally:
         con.close()
