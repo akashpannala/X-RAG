@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .env
+data/bm25.pkl
 frontend/node_modules/
 frontend/.next/
 frontend/out/
