@@ -77,6 +77,12 @@ def retrieve(s: RAGState) -> dict:
         lists.append(bm25_search(s["query"], 20))
     except Exception:
         pass
+    try:
+        from backend.l06_sparse.splade import search as splade_search
+
+        lists.append(splade_search(s["query"], 20))
+    except Exception:
+        pass
     return {"hits": rrf_fuse([l for l in lists if l])[:n]}
 
 

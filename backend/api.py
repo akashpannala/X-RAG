@@ -6,10 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from backend.config import settings
-from backend.l01_connectors.loaders import check_supported
+from backend.l01_connectors.loaders import check_supported, is_image
 from backend.l02_docintel.docling import parse as docling_parse
 from backend.l03_cleaning.cleaning import redact
-from backend.l04_chunking.splitter import chunk
 from backend.l07_storage import qdrant as store
 from backend.l07_storage.kuzu_min import record as kuzu_record
 from backend.l08_freshness.store import jdump, meta_conn, sha256_file
@@ -93,8 +92,26 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
     check_supported(dest)
     dest.write_bytes(f.file.read())
     h = sha256_file(dest)
-    text, _ = redact(docling_parse(dest))
-    chunks = chunk(text)
+    if is_image(dest):
+        from backend.l02_docintel.ocr import ocr_image
+
+        raw = ocr_image(dest)
+    else:
+        try:
+            raw = docling_parse(dest)
+        except Exception:
+            from backend.l02_docintel.ocr import ocr_image
+
+            raw = ocr_image(dest)  # scanned PDF fallback
+    text, _ = redact(raw)
+    from backend.l04_chunking.splitter import chunk as basic_chunk
+
+    if enrich:
+        from backend.l04_chunking.full import full_chunk
+
+        chunks = full_chunk(text, dest.stem)
+    else:
+        chunks = basic_chunk(text)
     payloads = [{"doc": dest.stem, "chunk_id": i, "text": c, "allowed_groups": groups}
                 for i, c in enumerate(chunks)]
     texts = list(chunks)
@@ -117,6 +134,12 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
         from backend.l06_sparse.bm25 import add as bm25_add
 
         bm25_add(texts, payloads)
+    except Exception:
+        pass
+    try:
+        from backend.l06_sparse.splade import add as splade_add
+
+        splade_add(texts, payloads)
     except Exception:
         pass
     try:

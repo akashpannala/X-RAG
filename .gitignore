@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .env
 data/bm25.pkl
+data/splade.pkl
 frontend/node_modules/
 frontend/.next/
 frontend/out/
