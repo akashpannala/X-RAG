@@ -161,6 +161,7 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
 
 
 def _judge_and_score(conv_id: int, query: str, ans: str, cites: list[str]):
+    """In-process fallback only — Redis Streams worker is the primary path."""
     from backend.l21_eval.eval import judge_score, record_score
 
     record_score(conv_id, judge_score(query, ans, cites))
@@ -173,7 +174,10 @@ def query(req: QueryRequest, bg: BackgroundTasks, user: User = Depends(current_u
     text, cites, contexts, mode, hit, verif = answer(
         req.query, req.top_k, user.groups, req.mode, user.id)
     cid = log_conversation(user.id, req.query, text, mode, contexts)
-    bg.add_task(_judge_and_score, cid, req.query, text, cites)
+    from backend.l22_ragops import queue
+
+    if not queue.enqueue(cid, req.query, text, cites):  # redis down → stdlib fallback
+        bg.add_task(_judge_and_score, cid, req.query, text, cites)
     return QueryResponse(answer=text, citations=cites, provider=settings.llm_provider,
                          mode=mode, cache_hit=hit, verification=verif)
 
@@ -183,3 +187,43 @@ def eval_ragas(limit: int = 20, user: User = Depends(current_user)):
     from backend.l21_eval.eval import ragas_offline
 
     return ragas_offline(limit)
+
+
+@app.get("/metrics")
+def metrics():
+    """Prometheus text exposition (no auth — localhost-only deployment)."""
+    from backend.l22_ragops.metrics import dump
+
+    from fastapi import Response
+
+    return Response(dump(), media_type="text/plain; version=0.0.4; charset=utf-8")
+
+
+@app.get("/ops/telemetry")
+def telemetry(rows: int = 50, user: User = Depends(current_user)):
+    from backend.config import settings
+    from backend.l08_freshness.store import meta_conn
+
+    con = meta_conn(settings.sqlite_path)
+    try:
+        out = con.execute(
+            "SELECT mode, cache_hit, latency_ms, n_queries, n_hits, rerank_stage,"
+            " supported_ratio, provider, created_at FROM query_telemetry"
+            " ORDER BY id DESC LIMIT ?", (rows,)).fetchall()
+    finally:
+        con.close()
+    return [dict(zip(("mode", "cache_hit", "latency_ms", "n_queries", "n_hits",
+                       "rerank_stage", "supported_ratio", "provider", "created_at"), r))
+            for r in out]
+
+
+@app.get("/ops/queue")
+def queue_status(user: User = Depends(current_user)):
+    from backend.l22_ragops import queue
+
+    try:
+        r = queue._client()
+        return {"stream": r.xlen(queue.STREAM), "dlq": r.xlen(queue.DLQ),
+                "redis": "up"}
+    except Exception:
+        return {"redis": "down"}

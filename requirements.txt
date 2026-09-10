@@ -20,6 +20,10 @@ sentence-transformers>=3.0
 torch
 presidio-analyzer>=2.2
 presidio-anonymizer>=2.2
+# Phase 4 (L22 RAGOps) — verified versions on this box
+redis>=8.0,<9
+prometheus-client>=0.26,<1
+langfuse==4.15.3
 # langchain stack (offline-safe once installed)
 langchain-core==1.6.3
 langchain-groq==1.1.3

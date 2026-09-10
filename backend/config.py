@@ -19,6 +19,14 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-env"
     jwt_expire_min: int = 480
     default_mode_by_group: str = '{"hr": "quick", "eng": "deep", "public": "quick"}'
+    # --- Phase 4 RAGOps ---
+    redis_url: str = "redis://localhost:6379/0"
+    embed_quant: bool = False  # dynamic int8 of BGE-M3 / rerankers
+    eval_floor: float = 0.8  # golden-set faithfulness floor for regression tests
+    langfuse_enabled: bool = False
+    langfuse_host: str = "http://localhost:8080"
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
 
 
 settings = Settings()

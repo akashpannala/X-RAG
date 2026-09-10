@@ -1,10 +1,29 @@
 """Single entry: check requirements → compile graph → serve API. Or: seed users."""
+import logging
 import sys
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 import uvicorn
 
 from backend.config import check_requirements
 from backend.l18_generation.graph import get_graph
+
+
+def setup_logging() -> None:
+    logdir = Path("data/logs")
+    logdir.mkdir(parents=True, exist_ok=True)
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    if not root.handlers:
+        fmt = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
+        fh = RotatingFileHandler(logdir / "api.log", maxBytes=10_000_000,
+                                 backupCount=5, encoding="utf-8")
+        fh.setFormatter(fmt)
+        root.addHandler(fh)
+        sh = logging.StreamHandler()
+        sh.setFormatter(fmt)
+        root.addHandler(sh)
 
 
 def seed() -> None:
@@ -23,6 +42,7 @@ def seed() -> None:
 
 
 def main(port: int = 8001) -> None:
+    setup_logging()
     if not check_requirements():
         sys.exit(1)
     get_graph()  # compile once, fail fast on wiring errors

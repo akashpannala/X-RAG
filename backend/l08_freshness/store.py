@@ -12,6 +12,16 @@ CREATE TABLE IF NOT EXISTS documents(
 CREATE TABLE IF NOT EXISTS conversations(
   id INTEGER PRIMARY KEY, user_id INTEGER, query TEXT, answer TEXT,
   mode TEXT, score REAL, contexts_json TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS query_telemetry(
+  id INTEGER PRIMARY KEY, user_id INTEGER, mode TEXT, cache_hit INTEGER,
+  latency_ms REAL, n_queries INTEGER, n_hits INTEGER, rerank_stage TEXT,
+  supported_ratio REAL, provider TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS eval_goldens(
+  id INTEGER PRIMARY KEY, query TEXT UNIQUE, golden_answer TEXT,
+  gold_cites_json TEXT, groups_json TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS mined_hard_negatives(
+  id INTEGER PRIMARY KEY, query TEXT, doc TEXT, chunk_id INTEGER,
+  label_json TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 """
 
 
