@@ -51,10 +51,11 @@ class IngestResponse(BaseModel):
     hash: str
 
 
-app = FastAPI(title="OFFLINE-RAG Phase 2")
+app = FastAPI(title="X-RAG")
+_origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,7 +65,8 @@ Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "llm": settings.llm_provider, "qdrant": settings.qdrant_url}
+    return {"status": "ok", "llm": settings.llm_provider, "vector_store": settings.vector_store_provider,
+            "qdrant": settings.qdrant_url, "db": "postgres" if settings.database_url else "sqlite"}
 
 
 @app.post("/auth/register")

@@ -33,10 +33,31 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def meta_conn(path: str):
-    c = sqlite3.connect(path)
+def _is_postgres_url(url: str) -> bool:
+    return url.startswith("postgresql://") or url.startswith("postgres://")
+
+
+def meta_conn(path: str | None = None):
+    """Env-driven: if DATABASE_URL is postgres/supabase, use psycopg; else sqlite at path/SQLITE_PATH."""
+    from backend.config import settings
+
+    db_url = (settings.database_url or "").strip()
+    # Supabase uses DATABASE_URL as postgres DSN; SUPABASE_URL alone is not a DB connection
+    if _is_postgres_url(db_url):
+        try:
+            import psycopg
+
+            c = psycopg.connect(db_url)
+            c.execute(SCHEMA.replace("INTEGER PRIMARY KEY", "SERIAL PRIMARY KEY").replace("TIMESTAMP DEFAULT CURRENT_TIMESTAMP", "TIMESTAMP DEFAULT NOW()"))
+            return c
+        except ImportError:
+            raise RuntimeError("psycopg not installed — pip install psycopg[binary] for postgres DATABASE_URL")
+        except Exception:
+            raise
+    # SQLite path (also used by l20_cache)
+    sqlite_path = path or settings.sqlite_path
+    c = sqlite3.connect(sqlite_path)
     c.executescript(SCHEMA)
-    # migrate pre-Phase-2 DBs that lack the new tables/columns
     cols = {r[1] for r in c.execute("PRAGMA table_info(documents)")}
     if "allowed_groups_json" not in cols:
         c.execute("ALTER TABLE documents ADD COLUMN allowed_groups_json TEXT DEFAULT '[\"public\"]'")

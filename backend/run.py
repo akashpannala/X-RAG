@@ -41,16 +41,21 @@ def seed() -> None:
             print(f"skip: {e}")
 
 
-def main(port: int = 8001) -> None:
+def main(port: int | None = None) -> None:
+    from backend.config import settings
+
     setup_logging()
     if not check_requirements():
         sys.exit(1)
     get_graph()  # compile once, fail fast on wiring errors
-    uvicorn.run("backend.api:app", host="127.0.0.1", port=port)
+    host = settings.host
+    use_port = int(port) if port is not None else int(settings.port)
+    uvicorn.run("backend.api:app", host=host, port=use_port)
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "seed":
         seed()
     else:
-        main(port=int(sys.argv[1]) if len(sys.argv) > 1 else 8001)
+        arg_port = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else None
+        main(port=arg_port)
