@@ -27,9 +27,21 @@ def _load():
 
 
 def _save() -> None:
+    import os
+    import tempfile
+
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(INDEX_PATH, "wb") as f:
-        pickle.dump((_index, _meta), f)
+    fd, tmp = tempfile.mkstemp(dir=str(INDEX_PATH.parent))
+    try:
+        with os.fdopen(fd, "wb") as f:
+            pickle.dump((_index, _meta), f)
+        os.replace(tmp, INDEX_PATH)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except Exception:
+            pass
+        raise
 
 
 def add(texts: list[str], payloads: list[dict]) -> None:

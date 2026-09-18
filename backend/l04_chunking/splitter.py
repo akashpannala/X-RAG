@@ -15,4 +15,12 @@ def chunk(text: str) -> list[str]:
         parts.append(m.group(0))
         last = m.end()
     parts.append(text[last:])
-    return [c for p in parts if p.strip() for c in _splitter.split_text(p)]
+    out: list[str] = []
+    for p in parts:
+        if not p.strip():
+            continue
+        if p.lstrip().startswith("```"):  # ponytail: fenced stays whole even >2000 for table/code integrity
+            out.append(p)
+        else:
+            out.extend(_splitter.split_text(p))
+    return out

@@ -6,33 +6,43 @@ late (BGE-M3 long-ctx pooled), semantic (cosine breakpoints), parent
 atomic claims), contextual (LLM header per chunk). Propositional/contextual
 cost LLM calls — that is what enrich=true buys.
 """
+import logging
 import re
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+_logger = logging.getLogger(__name__)
 
 _base = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
 _sent = re.compile(r"(?<=[.!?])\s+")
 
 
 def late_chunks(text: str, size: int = 2000) -> list[str]:
-    """Late Chunking: embed the whole doc once with BGE-M3 long context, then
-    mean-pool token spans per chunk. Returns chunk texts (embeddings cached
-    by the caller via get_embeddings). Falls back to plain splits."""
+    """Late Chunking: embed whole doc with BGE-M3 long ctx then mean-pool per chunk span.
+    Remote embed (EMBED_URL/choreo) has no tokenizer — skips pooling, plain split.
+    ponytail: returns texts identical; pooled vectors computed but texts returned (late-pooled by construction).
+    If you need vectors, change to return (texts, pooled) and wire to Qdrant.
+    """
     parts = _base.split_text(text)
     if len(parts) < 2:
         return parts
+    # remote has no tokenizer/model — skip heavy work
+    from backend.config import settings
+
+    if settings.embed_url or settings.embed_provider == "choreo":
+        _logger.info("late_chunks: remote embed, skipping token-pool, plain split")
+        return parts
     try:
         from backend.l06_embedding.bge import get_embeddings
-        from backend.config import settings
 
-        model = get_embeddings(settings.embed_model).client.model  # type: ignore
-        tok = get_embeddings(settings.embed_model).client.tokenizer  # type: ignore
+        st = get_embeddings(settings.embed_model)._client  # SentenceTransformer, correct is _client not .client
+        tok = st.tokenizer
+        # local-only: whole-doc word_embeddings then span mean-pool
         enc = tok(text[:8192 * 4], return_tensors="pt", truncation=True)
         import torch
 
         with torch.no_grad():
-            out = model.embeddings.word_embeddings(enc["input_ids"])
-        # boundary map: char offset of each part → token span → mean pool
+            out = st[0].auto_model.embeddings.word_embeddings(enc["input_ids"])
         offsets, acc = [], 0
         for p in parts:
             acc += len(p)
@@ -46,8 +56,8 @@ def late_chunks(text: str, size: int = 2000) -> list[str]:
                 start = idx[-1] + 1
         if len(pooled) == len(parts):
             return parts  # texts identical; embeddings are late-pooled by construction
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.warning("late_chunks fallback to plain split: %s", e)
     return parts
 
 
@@ -73,7 +83,8 @@ def semantic_chunks(text: str, threshold: float = 0.55) -> list[str]:
         if cur:
             chunks.append(" ".join(cur))
         return chunks or _base.split_text(text)
-    except Exception:
+    except Exception as e:
+        _logger.warning("semantic_chunks fallback to plain split: %s", e)
         return _base.split_text(text)
 
 
@@ -100,10 +111,14 @@ def window_chunks(text: str, window: int = 2) -> list[str]:
 
 def propositional_chunks(text: str) -> list[str]:
     """LLM atomic claims (one fact each). Enrich-gated: costs LLM calls."""
+    # ponytail: sequential invokes; batch/async if enrich latency matters on local Ollama
     from backend.l18_generation.llm import get_llm
 
+    parts = _base.split_text(text)
+    if len(parts) > 20:
+        _logger.warning("propositional_chunks capped at 20/%d blocks — long doc loses coverage", len(parts))
     out = []
-    for block in _base.split_text(text)[:20]:
+    for block in parts[:20]:
         msg = get_llm().invoke(
             "Split this passage into atomic propositions, one fact per line, no numbering:\n" + block)
         t = msg.content if isinstance(msg.content, str) else str(msg.content)
@@ -113,10 +128,14 @@ def propositional_chunks(text: str) -> list[str]:
 
 def contextual_chunks(text: str, doc_title: str = "") -> list[str]:
     """LLM situating header prepended to each chunk (Anthropic contextual)."""
+    # ponytail: sequential invokes; batch/async if enrich latency matters
     from backend.l18_generation.llm import get_llm
 
+    parts = _base.split_text(text)
+    if len(parts) > 20:
+        _logger.warning("contextual_chunks capped at 20/%d blocks — long doc loses coverage", len(parts))
     out = []
-    for block in _base.split_text(text)[:20]:
+    for block in parts[:20]:
         msg = get_llm().invoke(
             f"Give this chunk a one-sentence situating header naming the document "
             f"('{doc_title}') and section. Header only, no quotes:\n" + block[:1500])
@@ -125,16 +144,20 @@ def contextual_chunks(text: str, doc_title: str = "") -> list[str]:
     return out or _base.split_text(text)
 
 
-def full_chunk(text: str, doc_title: str = "") -> list[str]:
-    """All eight strategies merged, deduped. Used when enrich=true."""
-    seen, out = set(), []
-    for chunk in (late_chunks(text) + semantic_chunks(text)
-                  + [c for _, kids in parent_chunks(text) for c in kids]
-                  + window_chunks(text)[:50]
-                  + propositional_chunks(text)
-                  + contextual_chunks(text, doc_title)):
-        key = chunk[:120]
-        if key not in seen and chunk.strip():
-            seen.add(key)
+def full_chunk(text: str, doc_title: str = "", enrich_llm: bool = True) -> list[str]:
+    """All strategies merged, deduped. enrich_llm=False skips the two LLM strategies
+    for late+semantic+parent+window only (partial enrich without 40 LLM calls)."""
+    pooled = late_chunks(text) + semantic_chunks(text) + [c for _, kids in parent_chunks(text) for c in kids] + window_chunks(text)[:50]
+    if enrich_llm:
+        pooled += propositional_chunks(text) + contextual_chunks(text, doc_title)
+    seen: set[str] = set()
+    out: list[str] = []
+    for chunk in pooled:
+        stripped = chunk.strip()
+        if not stripped:
+            continue
+        # ponytail: exact dedup on full text (was chunk[:120] — false merges on shared 120-char prefix; use MinHash in L3 for near-dup)
+        if stripped not in seen:
+            seen.add(stripped)
             out.append(chunk)
     return out

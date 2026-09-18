@@ -28,7 +28,7 @@ def graph_agent(query: str, groups: list[str], n: int) -> list[dict]:
     keywords = {w.lower() for w in _WORD.findall(query)}
     docs: list[str] = []
     try:
-        rows = con.execute("MATCH (e:Ent)-[:IN]->(d:Doc) RETURN e.name, d.name LIMIT 500")
+        rows = con.execute("MATCH (e:Ent)-[:`IN`]->(d:Doc) RETURN e.name, d.name LIMIT 500")
         while rows.has_next():
             ename, dname = rows.get_next()
             if any(k in str(ename).lower() for k in keywords) and dname not in docs:

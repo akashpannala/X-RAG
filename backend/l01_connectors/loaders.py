@@ -11,5 +11,6 @@ def is_image(path: Path) -> bool:
 
 
 def check_supported(path: Path) -> None:
-    if path.suffix.lower() not in SUPPORTED:
-        raise ValueError(f"Unsupported {path.suffix} — supported: {sorted(SUPPORTED)}")
+    ext = path.suffix.lower()
+    if ext not in SUPPORTED:
+        raise ValueError(f"Unsupported {ext or '(no extension)'} — supported: {sorted(SUPPORTED)} — convert legacy .doc/.xls/.ppt to .docx/.xlsx via LibreOffice headless if needed")
