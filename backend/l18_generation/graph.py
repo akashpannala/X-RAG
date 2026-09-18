@@ -10,6 +10,7 @@ from typing import TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from backend.l07_storage import qdrant as store
+from backend.l08_freshness.store import meta_conn
 from backend.l09_toggle.mode import resolve
 from backend.l11_transforms.transforms import decompose, hyde, multi_query, rrf_fuse, step_back
 from backend.l13_agents.agents import graph_agent, image_agent, sql_agent, vector_agent
@@ -222,29 +223,13 @@ def answer(query: str, top_k: int = 5, groups: list[str] | None = None,
     if hit is not None:
         _record_telemetry(query, user_id, mode, True, t_start, {}, 0, -1.0)
         return hit[0], hit[1], [], mode, True, {"labels": [], "supported_ratio": -1.0}
-    try:
-        from backend.l22_ragops.trace import langfuse_handler, start_query_trace
-
-        handler = langfuse_handler()
-        trace_obj = None if handler is not None else start_query_trace(query)
-    except Exception:
-        handler = None
-        trace_obj = None
     state = {"query": query, "top_k": top_k, "groups": groups,
              "mode_override": mode_override, "user_id": user_id,
              "telemetry": {}}
     try:
-        if handler is not None:
-            out = get_graph().invoke(state, config={"callbacks": [handler]})
-        else:
-            out = get_graph().invoke(state)
+        out = get_graph().invoke(state)
     except Exception:
         out = get_graph().invoke(state)
-    if trace_obj is not None:
-        try:
-            _finish_trace(trace_obj, out)
-        except Exception:
-            pass
     if (out.get("blocked", "").startswith("low retrieval confidence")
             and mode == "deep" and not _retried):
         retry_q = step_back(query)
@@ -261,40 +246,23 @@ def answer(query: str, top_k: int = 5, groups: list[str] | None = None,
             out.get("verification", {"labels": [], "supported_ratio": -1.0}))
 
 
-def _finish_trace(trace_obj, out: dict) -> None:
-    """Bare-SDK fallback: attach output + telemetry metadata, then flush."""
-    meta = dict(out.get("telemetry", {}))
-    meta["mode"] = out.get("mode", "")
-    meta["n_citations"] = len(out.get("cites", []))
-    meta["latency_ms"] = meta.pop("wall_ms", None)
-    trace_obj.update(
-        output={
-            "answer": (out.get("answer", "") or "")[:400],
-            "blocked": out.get("blocked", ""),
-            "citations": [c.get("id", "") for c in out.get("cites", [])],
-        },
-        metadata=meta)
-    trace_obj.end()
-    trace_obj._client.flush()
-
-
 def _record_telemetry(query: str, user_id: int, mode: str, cache_hit: bool,
                       t_start: float, telemetry: dict, n_hits: int,
                       supported_ratio: float) -> None:
-    """Best-effort ops row + Prometheus counters. Never raises."""
+    """Best-effort ops row in query_telemetry. Never raises."""
     try:
-        from backend.l22_ragops import metrics
-
         latency_ms = (time.monotonic() - t_start) * 1000
+        con = meta_conn(settings.sqlite_path)
         try:
-            metrics.observe_cache(metrics.cache_rows())
-        except Exception:
-            pass
-        metrics.record(
-            query, user_id or 0, mode, cache_hit, latency_ms,
-            int(telemetry.get("n_queries", 1)), n_hits,
-            str(telemetry.get("rerank_stage", "")),
-            float(supported_ratio),
-            settings.llm_provider)
+            con.execute(
+                "INSERT INTO query_telemetry(user_id, mode, cache_hit, latency_ms, n_queries,"
+                " n_hits, rerank_stage, supported_ratio, provider) VALUES (?,?,?,?,?,?,?,?,?)",
+                (user_id, mode, int(cache_hit), latency_ms,
+                 int(telemetry.get("n_queries", 1)), n_hits,
+                 str(telemetry.get("rerank_stage", "")), supported_ratio,
+                 settings.llm_provider))
+            con.commit()
+        finally:
+            con.close()
     except Exception:
         pass

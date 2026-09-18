@@ -14,10 +14,7 @@ def get_bge_reranker(name: str = "BAAI/bge-reranker-v2-m3"):
     if _bge is None:
         from sentence_transformers import CrossEncoder
 
-        from backend.l22_ragops.quant import quantize_dynamic_if_enabled
-
         _bge = CrossEncoder(name)
-        quantize_dynamic_if_enabled(_bge.model)
     return _bge
 
 

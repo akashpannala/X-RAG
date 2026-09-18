@@ -1,8 +1,6 @@
 """L14: MiniLM single-stage rerank (Quick mode). Cascade second stage = Phase 3."""
 from sentence_transformers import CrossEncoder
 
-from backend.l22_ragops.quant import quantize_dynamic_if_enabled
-
 _model = None
 
 
@@ -10,7 +8,6 @@ def get_reranker(name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
     global _model
     if _model is None:
         _model = CrossEncoder(name)
-        quantize_dynamic_if_enabled(_model.model)
     return _model
 
 
