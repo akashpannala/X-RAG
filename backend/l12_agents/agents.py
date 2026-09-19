@@ -6,7 +6,7 @@ Image agent activates with a VL model (Phase 3-full hardware).
 """
 import re
 
-from backend.l07_storage import qdrant as store
+from backend import l07_storage as store
 from backend.l14_security.acl import groups_filter
 
 _WORD = re.compile(r"[a-zA-Z]{4,}")

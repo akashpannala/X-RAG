@@ -9,7 +9,7 @@ from backend.config import settings
 from backend.l01_connectors.loaders import check_supported, is_image
 from backend.l02_docintel.docling import parse as docling_parse
 from backend.l03_cleaning.cleaning import redact
-from backend.l07_storage import qdrant as store
+from backend import l07_storage as store
 from backend.l07_storage.kuzu_min import record as kuzu_record
 from backend.l08_freshness.store import jdump, meta_conn, sha256_file
 from backend.l19_cache.cache import clear as clear_cache
@@ -66,7 +66,8 @@ Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "llm": settings.llm_provider, "vector_store": "qdrant",
+    vs = "pgvector" if "pgvector" in store.search.__module__ else "qdrant"
+    return {"status": "ok", "llm": settings.llm_provider, "vector_store": vs,
             "qdrant": settings.vector_base_url, "db": "postgres" if settings.db_url else "sqlite"}
 
 
@@ -206,20 +207,3 @@ def query(req: QueryRequest, user: User = Depends(current_user)):
     return QueryResponse(answer=text, citations=cites, provider=settings.llm_provider,
                           mode=mode, cache_hit=hit, verification=verif)
 
-
-@app.get("/ops/telemetry")
-def telemetry(rows: int = 50, user: User = Depends(current_user)):
-    from backend.config import settings
-    from backend.l08_freshness.store import meta_conn
-
-    con = meta_conn(settings.db_path)
-    try:
-        out = con.execute(
-            "SELECT mode, cache_hit, latency_ms, n_queries, n_hits, rerank_stage,"
-            " supported_ratio, provider, created_at FROM query_telemetry"
-            " ORDER BY id DESC LIMIT ?", (rows,)).fetchall()
-    finally:
-        con.close()
-    return [dict(zip(("mode", "cache_hit", "latency_ms", "n_queries", "n_hits",
-                       "rerank_stage", "supported_ratio", "provider", "created_at"), r))
-            for r in out]

@@ -68,7 +68,8 @@ def search(query: str, k: int = 20, groups: list[str] | None = None) -> list[dic
     except Exception:
         return []
     hits = [{"doc": meta[i]["doc"], "chunk_id": meta[i]["chunk_id"],
-             "text": meta[i]["text"], "score": float(scores[j])}
+             "text": meta[i]["text"], "score": float(scores[j]),
+             "allowed_groups": list(meta[i].get("allowed_groups") or [])}
             for j, i in enumerate(ids)]
     if groups is not None:
         hits = [h for h in hits if allowed(groups, h.get("allowed_groups"))]

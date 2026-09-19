@@ -121,8 +121,9 @@ def search(query: str, k: int = 20, groups: list[str] | None = None) -> list[dic
         reverse=True,
     )
     hits = [{"doc": meta[i]["doc"], "chunk_id": meta[i]["chunk_id"],
-            "text": meta[i]["text"], "score": float(s)}
-            for s, i in scored[:k] if s > SEARCH_FLOOR]
+            "text": meta[i]["text"], "score": float(s),
+            "allowed_groups": list(meta[i].get("allowed_groups") or [])}
+           for s, i in scored[:k] if s > SEARCH_FLOOR]
     if groups is not None:
         hits = [h for h in hits if allowed(groups, h.get("allowed_groups"))]
     return hits

@@ -1,19 +1,21 @@
-"""L6a: Embeddings — BGE-M3 local or remote (Jina/Voyage/Cohere/Choreo) via unified config."""
+"""L6a: Embeddings — Jina API primary, BGE-M3 local fallback via unified config."""
 from backend.config import settings, _resolve_embed_url
 
 _embeddings = None
+_remote_failed = False
 
 
 def get_embeddings(model_name: str):
     """Returns object with embed_documents(list[str]) and embed_query(str).
-    If EMBED_BASE_URL / EMBED_PROVIDER is remote, uses HTTP; else local HF."""
-    global _embeddings
+    Tries remote API first (Jina/Voyage/Cohere), falls back to local BGE-M3 on failure."""
+    global _embeddings, _remote_failed
     embed_url = _resolve_embed_url()
     provider = settings.embed_provider.lower()
 
-    if provider in ("jina", "voyage", "cohere", "choreo") or embed_url:
+    # Try remote API first (if provider is remote or URL is set)
+    if (provider in ("jina", "voyage", "cohere", "choreo") or embed_url) and not _remote_failed:
         url = embed_url.rstrip("/")
-        # lightweight shim with same surface as HuggingFaceEmbeddings
+
         class _Remote:
             def embed_documents(self, texts: list[str]) -> list[list[float]]:
                 import httpx
@@ -54,8 +56,15 @@ def get_embeddings(model_name: str):
             def model_name(self):
                 return model_name
 
-        return _Remote()
+        remote = _Remote()
+        # Test the remote connection
+        try:
+            remote.embed_documents(["test"])
+            return remote
+        except Exception:
+            _remote_failed = True  # Mark remote as failed for future calls
 
+    # Fallback to local BGE-M3
     if _embeddings is None or getattr(_embeddings, "model_name", None) != model_name:
         from langchain_huggingface import HuggingFaceEmbeddings
 

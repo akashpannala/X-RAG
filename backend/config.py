@@ -183,17 +183,39 @@ def check_requirements() -> bool:
     else:
         rows.append(("Rerank (MiniLM)", True, "local cross-encoder"))
 
-    # Qdrant
-    try:
-        from qdrant_client import QdrantClient
+    # Vector Store (Supabase pgvector → Qdrant fallback)
+    vector_ok = False
+    # Try Supabase pgvector first (API)
+    if settings.db_provider in ("postgres", "supabase") and settings.db_url:
+        try:
+            import psycopg
+            from pgvector.psycopg import register_vector
 
-        kwargs = {"url": settings.vector_base_url}
-        if settings.vector_api_key:
-            kwargs["api_key"] = settings.vector_api_key
-        QdrantClient(**kwargs).get_collections()
-        rows.append(("Qdrant", True, settings.vector_base_url))
-    except Exception as e:
-        rows.append(("Qdrant", False, f"VECTOR_BASE_URL={settings.vector_base_url} unreachable ({e})"))
+            conn = psycopg.connect(settings.db_url, connect_timeout=5)
+            register_vector(conn)
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+            conn.close()
+            rows.append(("Supabase pgvector", True, "pooler"))
+            vector_ok = True
+        except Exception as e:
+            rows.append(("Supabase pgvector", False, f"unreachable ({e})"))
+    # Fallback to Qdrant (local)
+    if not vector_ok:
+        try:
+            from qdrant_client import QdrantClient
+
+            kwargs = {"url": settings.vector_base_url}
+            if settings.vector_api_key:
+                kwargs["api_key"] = settings.vector_api_key
+            QdrantClient(**kwargs).get_collections()
+            rows.append(("Qdrant", True, settings.vector_base_url))
+            vector_ok = True
+        except Exception as e:
+            rows.append(("Qdrant", False, f"VECTOR_BASE_URL={settings.vector_base_url} unreachable ({e})"))
+
+    if not vector_ok:
+        rows.append(("Vector Store", False, "No vector store available (tried pgvector, Qdrant)"))
 
     # Database
     if settings.db_provider in ("postgres", "supabase") and settings.db_url:

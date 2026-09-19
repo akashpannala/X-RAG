@@ -85,6 +85,11 @@ def create_user(username: str, password: str, groups: list[str], force_groups: b
         return cur.fetchone()[0]
     except sqlite3.IntegrityError as e:
         raise ValueError(f"username taken: {username}") from e
+    except Exception as e:
+        # Postgres UniqueViolation (and similar) — map to ValueError so seed skips cleanly
+        if type(e).__name__ == "UniqueViolation" or "duplicate key" in str(e).lower():
+            raise ValueError(f"username taken: {username}") from e
+        raise
     finally:
         con.close()
 

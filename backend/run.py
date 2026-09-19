@@ -27,18 +27,36 @@ def setup_logging() -> None:
 
 
 def seed() -> None:
-    from backend.l14_security.auth import create_user
+    """Demo users. Passwords are short by request — hash directly (skip validate_password)."""
+    from passlib.context import CryptContext
 
-    for username, password, groups in [
-        ("admin", "admin123", ["hr", "eng", "public"]),
-        ("hr_amy", "hr123456", ["hr", "public"]),
-        ("eng_bob", "eng12345", ["eng", "public"]),
-    ]:
-        try:
-            create_user(username, password, groups, force_groups=True)
-            print(f"created {username} {groups}")
-        except ValueError as e:
-            print(f"skip: {e}")
+    from backend.l08_freshness.store import jdump, meta_conn
+    from backend.config import settings
+
+    pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    con = meta_conn(settings.db_path)
+    try:
+        for username, password, groups in [
+            ("admin", "pass", ["hr", "eng", "public"]),
+            ("luffy", "pass", ["hr", "public"]),
+            ("zoro", "pass", ["eng", "public"]),
+        ]:
+            try:
+                ph = ", ".join(["%s"] * 3) if type(con).__module__.startswith("psycopg") else ", ".join(["?"] * 3)
+                cur = con.execute(
+                    f"INSERT INTO users(username, password_hash, groups_json) VALUES ({ph}) RETURNING id",
+                    (username, pwd.hash(password), jdump(groups)),
+                )
+                con.commit()
+                print(f"created {username} {groups}")
+            except Exception as e:
+                con.rollback()
+                if type(e).__name__ == "UniqueViolation" or "unique" in str(e).lower() or "duplicate" in str(e).lower():
+                    print(f"skip: username taken: {username}")
+                else:
+                    raise
+    finally:
+        con.close()
 
 
 def main(port: int | None = None) -> None:

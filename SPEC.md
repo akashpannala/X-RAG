@@ -14,7 +14,7 @@
 
 ## 1. What It Does
 
-Employees upload documents, chat with cited answers `[doc#chunk]`, on company WiFi. Department isolation via ACL — HR docs stay HR-only. Every query is observable via `query_telemetry` + `answer_cache`.
+Employees upload documents, chat with cited answers `[doc#chunk]`, on company WiFi. Department isolation via ACL — HR docs stay HR-only. Every query is observable via `answer_cache`.
 
 ---
 
@@ -135,7 +135,6 @@ Frontend needs only one var (bake-time): `frontend/.env` → `NEXT_PUBLIC_API_UR
 users[id, username, password_hash, groups JSON]
 documents[id, filename, allowed_groups JSON, hash]
 conversations[id, user_id, query, answer, mode, score, contexts_json]
-query_telemetry[id, user_id, mode, cache_hit, latency_ms, n_queries, n_hits, rerank_stage, supported_ratio, provider]
 ```
 
 Qdrant filter `allowed_groups` enforced **before** search. Mode default from `DEFAULT_MODE_BY_GROUP`.

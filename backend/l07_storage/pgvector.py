@@ -18,7 +18,7 @@ TABLE = "vectors"
 def _conn():
     global _conn_singleton
     if _conn_singleton is None:
-        db_url = settings.database_url or ""
+        db_url = settings.db_url or ""
         if not db_url.startswith("postgresql://") and not db_url.startswith("postgres://"):
             raise RuntimeError("DATABASE_URL must be postgresql:// for pgvector")
         _conn_singleton = psycopg.connect(db_url, row_factory=dict_row)
@@ -37,9 +37,9 @@ def _ensure_schema(conn) -> None:
                 chunk_id INTEGER NOT NULL,
                 text TEXT NOT NULL,
                 allowed_groups JSONB NOT NULL DEFAULT '[]'::jsonb,
-                embedding VECTOR
+                embedding VECTOR(1024)
             );
-            CREATE INDEX IF NOT EXISTS {TABLE}_embedding_idx ON {TABLE} USING ivfflat (embedding vector_cosine_ops);
+            CREATE INDEX IF NOT EXISTS {TABLE}_embedding_idx ON {TABLE} USING hnsw (embedding vector_cosine_ops);
             CREATE INDEX IF NOT EXISTS {TABLE}_doc_idx ON {TABLE} (doc);
             CREATE INDEX IF NOT EXISTS {TABLE}_groups_idx ON {TABLE} USING GIN (allowed_groups);
         """)
@@ -103,13 +103,14 @@ def search(query: str, top_k: int, qfilter: object | None = None) -> list[dict]:
                 filter_params.extend(groups)
 
             where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
-            params = [qv] + filter_params + [qv, top_k]
+            qv_s = str(qv)
+            params = [qv_s] + filter_params + [qv_s, top_k]
             cur.execute(
                 f"""
-                SELECT doc, chunk_id, text, 1 - (embedding <=> %s) AS score
+                SELECT doc, chunk_id, text, 1 - (embedding <=> %s::vector) AS score
                 FROM {TABLE}
                 {where_sql}
-                ORDER BY embedding <=> %s
+                ORDER BY embedding <=> %s::vector
                 LIMIT %s
                 """,
                 params,

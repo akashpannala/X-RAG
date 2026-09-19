@@ -26,9 +26,9 @@ def late_chunks(text: str, size: int = 2000):
     if len(parts) < 2:
         return parts, None
     # remote has no tokenizer/model — skip heavy work
-    from backend.config import settings
+    from backend.config import settings, _resolve_embed_url
 
-    if settings.embed_url or settings.embed_provider == "choreo":
+    if _resolve_embed_url() or settings.embed_provider == "choreo":
         _logger.info("late_chunks: remote embed, skipping token-pool, plain split")
         return parts, None
     try:
