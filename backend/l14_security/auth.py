@@ -81,8 +81,9 @@ def create_user(username: str, password: str, groups: list[str], force_groups: b
             f"INSERT INTO users(username, password_hash, groups_json) VALUES ({ph}) RETURNING id",
             (username, _pwd.hash(password), jdump(safe_groups)),
         )
+        row = cur.fetchone()  # fetch before commit — required for SQLite RETURNING
         con.commit()
-        return cur.fetchone()[0]
+        return row[0]
     except sqlite3.IntegrityError as e:
         raise ValueError(f"username taken: {username}") from e
     except Exception as e:
