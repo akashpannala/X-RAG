@@ -1,0 +1,249 @@
+2026-09-23 01:20:08,185 INFO httpx HTTP Request: GET https://api.jina.ai/v1/health "HTTP/1.1 404 Not Found"
+2026-09-23 01:20:09,327 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-23 01:20:10,667 INFO httpx HTTP Request: POST https://api.jina.ai/v1/rerank "HTTP/1.1 200 OK"
+       X-RAG requirements (env-driven)        
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━┳━━━━━━┓
+┃ Check                          ┃ OK ┃ Hint ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━╇━━━━━━┩
+│ Groq key                       │ ✅ │      │
+│ Embed (jina)                   │ ✅ │      │
+│ Rerank (Jina jina-reranker-m0) │ ✅ │      │
+│ Supabase pgvector              │ ✅ │      │
+│ Postgres                       │ ✅ │      │
+│ Docling                        │ ✅ │      │
+│ spaCy PII                      │ ✅ │      │
+└────────────────────────────────┴────┴──────┘
+INFO:     Started server process [33365]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:45200 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45206 - "POST /auth/login HTTP/1.1" 200 OK
+2026-09-23 01:20:34,209 ERROR docling.datamodel.stage_model_specs Preset 'granite_vision_v4' already registered for ChartExtractionVlmEngineOptions
+2026-09-23 01:20:36,180 INFO docling.datamodel.document detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-09-23 01:20:36,254 INFO docling.document_converter Going to convert document batch...
+2026-09-23 01:20:36,255 INFO docling.document_converter Initializing pipeline for StandardPdfPipeline with options hash 34afb5222f23c12c23ead492f0bdb956
+2026-09-23 01:20:36,271 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-23 01:20:36,276 INFO docling.models.factories Registered picture descriptions: ['picture_description_vlm_engine', 'vlm', 'api']
+2026-09-23 01:20:36,293 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-23 01:20:36,321 INFO docling.models.factories Registered ocr engines: ['auto', 'easyocr', 'kserve_v2_ocr', 'nemotron-ocr', 'ocrmac', 'rapidocr', 'tesserocr', 'tesseract']
+2026-09-23 01:20:36,322 INFO docling.models.stages.ocr.auto_ocr_model Nemotron cannot be used because it is not installed.
+2026-09-23 01:20:36,736 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+[32m[INFO] 2026-09-23 01:20:36,782 [RapidOCR] base.py:23: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-09-23 01:20:36,806 [RapidOCR] download_file.py:60: File exists and is valid: /home/zoro/X-RAG/.venv/lib/python3.13/site-packages/rapidocr/models/PP-OCRv6_det_small.onnx[0m
+[32m[INFO] 2026-09-23 01:20:36,807 [RapidOCR] main.py:63: Using /home/zoro/X-RAG/.venv/lib/python3.13/site-packages/rapidocr/models/PP-OCRv6_det_small.onnx[0m
+[32m[INFO] 2026-09-23 01:20:36,953 [RapidOCR] base.py:23: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-09-23 01:20:36,959 [RapidOCR] download_file.py:60: File exists and is valid: /home/zoro/X-RAG/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_mobile.onnx[0m
+[32m[INFO] 2026-09-23 01:20:36,959 [RapidOCR] main.py:63: Using /home/zoro/X-RAG/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_mobile.onnx[0m
+[32m[INFO] 2026-09-23 01:20:37,090 [RapidOCR] base.py:23: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-09-23 01:20:37,185 [RapidOCR] download_file.py:60: File exists and is valid: /home/zoro/X-RAG/.venv/lib/python3.13/site-packages/rapidocr/models/PP-OCRv6_rec_small.onnx[0m
+[32m[INFO] 2026-09-23 01:20:37,186 [RapidOCR] main.py:63: Using /home/zoro/X-RAG/.venv/lib/python3.13/site-packages/rapidocr/models/PP-OCRv6_rec_small.onnx[0m
+2026-09-23 01:20:37,564 INFO docling.models.stages.ocr.auto_ocr_model Auto OCR model selected rapidocr with onnxruntime.
+2026-09-23 01:20:37,594 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-23 01:20:37,604 INFO docling.models.factories Registered layout engines: ['layout_object_detection', 'docling_layout_default', 'docling_experimental_table_crops_layout']
+2026-09-23 01:20:37,617 INFO docling.models.inference_engines.object_detection.transformers_engine Initializing Transformers object-detection engine
+2026-09-23 01:20:37,617 INFO docling.models.inference_engines.common.hf_vision_base Downloading object-detection model from HuggingFace: docling-project/docling-layout-heron@main
+2026-09-23 01:20:37,617 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-layout-heron (revision: main)...
+2026-09-23 01:20:38,008 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-layout-heron/revision/main "HTTP/1.1 200 OK"
+2026-09-23 01:20:38,022 INFO docling.models.utils.hf_model_download Model docling-project/docling-layout-heron already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-layout-heron/snapshots/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8
+2026-09-23 01:20:38,022 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+Loading weights:   0%|          | 0/770 [00:00<?, ?it/s]Loading weights:  36%|███▌      | 275/770 [00:00<00:00, 2682.17it/s]Loading weights:  71%|███████   | 544/770 [00:00<00:00, 2485.11it/s]Loading weights: 100%|██████████| 770/770 [00:00<00:00, 2446.76it/s]
+2026-09-23 01:20:39,114 INFO docling.models.inference_engines.object_detection.transformers_engine Transformers engine ready (device=cpu, dtype=torch.float32)
+2026-09-23 01:20:39,140 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-23 01:20:39,150 INFO docling.models.factories Registered table structure engines: ['docling_tableformer', 'docling_tableformer_v2', 'granite_vision_table']
+2026-09-23 01:20:39,151 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-models (revision: v2.3.0)...
+2026-09-23 01:20:39,432 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-models/revision/v2.3.0 "HTTP/1.1 200 OK"
+2026-09-23 01:20:39,454 INFO docling.models.utils.hf_model_download Model docling-project/docling-models already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-models/snapshots/fc0f2d45e2218ea24bce5045f58a389aed16dc23
+2026-09-23 01:20:39,483 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-23 01:20:40,474 INFO docling.pipeline.base_pipeline Processing document Free Journals.pdf
+2026-09-23 01:20:54,194 INFO docling.document_converter Finished converting document Free Journals.pdf in 18.02 sec.
+2026-09-23 01:20:54,292 INFO presidio-analyzer Using device of type: cpu
+2026-09-23 01:20:54,821 INFO presidio-analyzer nlp_engine not provided, creating default.
+2026-09-23 01:20:57,358 INFO presidio-analyzer Created NLP engine: spacy. Loaded models: ['en']
+2026-09-23 01:20:57,359 INFO presidio-analyzer registry not provided, creating default.
+2026-09-23 01:20:57,419 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-23 01:20:57,420 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-23 01:20:57,420 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-23 01:20:57,420 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-23 01:20:57,421 INFO presidio-analyzer Loaded recognizer: UsBankRecognizer
+2026-09-23 01:20:57,421 INFO presidio-analyzer Loaded recognizer: UsLicenseRecognizer
+2026-09-23 01:20:57,421 INFO presidio-analyzer Loaded recognizer: UsItinRecognizer
+2026-09-23 01:20:57,422 INFO presidio-analyzer Loaded recognizer: UsPassportRecognizer
+2026-09-23 01:20:57,422 INFO presidio-analyzer Loaded recognizer: UsSsnRecognizer
+2026-09-23 01:20:57,422 INFO presidio-analyzer Loaded recognizer: NhsRecognizer
+2026-09-23 01:20:57,423 INFO presidio-analyzer Loaded recognizer: EsNifRecognizer
+2026-09-23 01:20:57,423 INFO presidio-analyzer Loaded recognizer: EsNieRecognizer
+2026-09-23 01:20:57,423 INFO presidio-analyzer Loaded recognizer: ItDriverLicenseRecognizer
+2026-09-23 01:20:57,424 INFO presidio-analyzer Loaded recognizer: ItFiscalCodeRecognizer
+2026-09-23 01:20:57,424 INFO presidio-analyzer Loaded recognizer: ItVatCodeRecognizer
+2026-09-23 01:20:57,424 INFO presidio-analyzer Loaded recognizer: ItIdentityCardRecognizer
+2026-09-23 01:20:57,425 INFO presidio-analyzer Loaded recognizer: ItPassportRecognizer
+2026-09-23 01:20:57,425 INFO presidio-analyzer Loaded recognizer: PlPeselRecognizer
+2026-09-23 01:20:57,426 INFO presidio-analyzer Loaded recognizer: CryptoRecognizer
+2026-09-23 01:20:57,426 INFO presidio-analyzer Loaded recognizer: DateRecognizer
+2026-09-23 01:20:57,426 INFO presidio-analyzer Loaded recognizer: EmailRecognizer
+2026-09-23 01:20:57,427 INFO presidio-analyzer Loaded recognizer: IbanRecognizer
+2026-09-23 01:20:57,427 INFO presidio-analyzer Loaded recognizer: IpRecognizer
+2026-09-23 01:20:57,428 INFO presidio-analyzer Loaded recognizer: MedicalLicenseRecognizer
+2026-09-23 01:20:57,428 INFO presidio-analyzer Loaded recognizer: MacAddressRecognizer
+2026-09-23 01:20:57,428 INFO presidio-analyzer Loaded recognizer: PhoneRecognizer
+2026-09-23 01:20:57,429 INFO presidio-analyzer Loaded recognizer: UrlRecognizer
+2026-09-23 01:20:57,429 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: es, registry supported languages: en
+2026-09-23 01:20:57,429 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: it, registry supported languages: en
+2026-09-23 01:20:57,429 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: pl, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNifRecognizer supported languages: es, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNieRecognizer supported languages: es, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItDriverLicenseRecognizer supported languages: it, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItFiscalCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItVatCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItIdentityCardRecognizer supported languages: it, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItPassportRecognizer supported languages: it, registry supported languages: en
+2026-09-23 01:20:57,430 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - PlPeselRecognizer supported languages: pl, registry supported languages: en
+2026-09-23 01:20:57,430 INFO presidio-analyzer Loaded recognizer: SpacyRecognizer
+2026-09-23 01:20:57,431 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-23 01:20:57,812 INFO backend.l04_chunking.full late_chunks: remote embed, skipping token-pool, plain split
+2026-09-23 01:20:58,990 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-23 01:21:00,834 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-23 01:21:04,520 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:05,515 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:06,184 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:06,703 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:07,489 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:08,128 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:08,836 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:09,163 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:09,822 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:10,562 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:11,207 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:12,184 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:12,257 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:12,258 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 5.000000 seconds
+2026-09-23 01:21:18,266 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:18,338 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:18,339 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 4.000000 seconds
+2026-09-23 01:21:23,138 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:23,205 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:23,206 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 3.000000 seconds
+2026-09-23 01:21:26,274 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:26,275 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 1.000000 seconds
+2026-09-23 01:21:28,150 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:28,217 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:28,218 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 3.000000 seconds
+2026-09-23 01:21:31,302 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:31,304 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 1.000000 seconds
+2026-09-23 01:21:32,729 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:32,798 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:32,799 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 2.000000 seconds
+2026-09-23 01:21:34,883 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:34,885 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 1.000000 seconds
+2026-09-23 01:21:36,674 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:36,749 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:36,750 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 1.000000 seconds
+2026-09-23 01:21:37,818 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:37,819 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 1.000000 seconds
+2026-09-23 01:21:39,745 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:39,818 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:39,819 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 6.000000 seconds
+2026-09-23 01:21:47,118 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:47,183 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-23 01:21:47,183 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 5.000000 seconds
+2026-09-23 01:21:53,058 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-23 01:21:54,082 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-23 01:21:56,131 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:42532 - "POST /ingest?allowed_groups=hr&enrich=true HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/uvicorn/protocols/http/httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/applications.py", line 96, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/middleware/cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 1281, in handle
+    await super().handle(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/routing.py", line 280, in handle
+    await self.app(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 354, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/anyio/to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "/home/zoro/X-RAG/backend/api.py", line 166, in ingest
+    store.add_docs(texts, payloads, vectors)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zoro/X-RAG/backend/l07_storage/pgvector.py", line 55, in add_docs
+    conn = _conn()
+  File "/home/zoro/X-RAG/backend/l07_storage/pgvector.py", line 26, in _conn
+    _ensure_schema(_conn_singleton)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/zoro/X-RAG/backend/l07_storage/pgvector.py", line 32, in _ensure_schema
+    cur.execute(f"""
+    ~~~~~~~~~~~^^^^^
+        CREATE EXTENSION IF NOT EXISTS vector;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+        CREATE INDEX IF NOT EXISTS {TABLE}_groups_idx ON {TABLE} USING GIN (allowed_groups);
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """)
+    ^^^^
+  File "/home/zoro/X-RAG/.venv/lib/python3.13/site-packages/psycopg/cursor.py", line 117, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.InvalidParameterValue: column does not have dimensions
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [33365]

@@ -193,10 +193,13 @@ def answer(query: str, top_k: int = 5, groups: list[str] | None = None,
         qcache.store(query, out.get("mode", mode), groups, text, cites)
         if user_id:
             try:
+                from backend.l14_security.auth import _ph_n
+
                 con = meta_conn(settings.db_path)
+                ph = _ph_n(con, 7)
                 con.execute(
-                    "INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json) VALUES (?,?,?,?,?,?)",
-                    (user_id, query, text, out.get("mode", mode), 0.0, jdump(out.get("contexts", []))))
+                    f"INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json, citations_json) VALUES ({ph})",
+                    (user_id, query, text, out.get("mode", mode), 0.0, jdump(out.get("contexts", [])), jdump(cites)))
                 con.commit()
                 con.close()
             except Exception:

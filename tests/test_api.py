@@ -101,3 +101,78 @@ def test_login_bad_credentials_401(client):
 def test_query_requires_auth(client):
     r = client.post("/query", json={"query": "hi"})
     assert r.status_code == 401
+
+
+def _headers(client, username):
+    client.post(
+        "/auth/register", json={"username": username, "password": "password1"}
+    )
+    r = client.post("/auth/login", json={"username": username, "password": "password1"})
+    assert r.status_code == 200
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+def test_documents_conversations_require_auth(client):
+    assert client.get("/documents").status_code == 401
+    assert client.get("/conversations").status_code == 401
+
+
+def test_documents_acl_filter(client):
+    from backend.config import settings
+    from backend.l08_freshness.store import jdump, meta_conn
+
+    con = meta_conn(settings.db_path)
+    con.execute(
+        "INSERT INTO documents(filename, allowed_groups_json, hash, chunks) VALUES (?,?,?,?)",
+        ("acl_hr_only.pdf", jdump(["hr"]), "f" * 64, 3),
+    )
+    con.execute(
+        "INSERT INTO documents(filename, allowed_groups_json, hash, chunks) VALUES (?,?,?,?)",
+        ("acl_shared.md", jdump(["public"]), "e" * 64, 5),
+    )
+    con.commit()
+    con.close()
+
+    r = client.get("/documents", headers=_headers(client, "acluser"))
+    assert r.status_code == 200
+    docs = {d["filename"]: d for d in r.json()}
+    assert "acl_shared.md" in docs
+    assert "acl_hr_only.pdf" not in docs  # caller has no hr group
+    assert docs["acl_shared.md"]["chunks"] == 5
+    assert docs["acl_shared.md"]["hash"] == "e" * 12
+    assert docs["acl_shared.md"]["allowed_groups"] == ["public"]
+    assert "size_bytes" in docs["acl_shared.md"]
+
+
+def test_conversations_returns_own_rows(client):
+    from backend.config import settings
+    from backend.l08_freshness.store import jdump, meta_conn
+    from backend.l14_security.auth import authenticate
+
+    headers = _headers(client, "histuser")
+    uid = authenticate("histuser", "password1").id
+
+    con = meta_conn(settings.db_path)
+    con.execute(
+        "INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json, citations_json) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (uid, "what is X?", "it is Y [docA#1]", "quick", 0.0, jdump([]), jdump(["[docA#1]"])),
+    )
+    con.execute(
+        "INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json, citations_json) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (999999, "not yours", "secret", "quick", 0.0, jdump([]), jdump([])),
+    )
+    con.commit()
+    con.close()
+
+    r = client.get("/conversations", headers=headers)
+    assert r.status_code == 200
+    rows = r.json()
+    assert rows, "own conversation row must be returned"
+    assert all(r_["query"] != "not yours" for r_ in rows)
+    mine = next(r_ for r_ in rows if r_["query"] == "what is X?")
+    assert mine["answer"] == "it is Y [docA#1]"
+    assert mine["citations"] == ["[docA#1]"]
+    assert mine["mode"] == "quick"
+    assert mine["created_at"]

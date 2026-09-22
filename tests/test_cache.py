@@ -55,3 +55,16 @@ def test_clear_removes_everything():
     assert qcache.clear() >= 2
     assert qcache.lookup("a", "quick", ["public"]) is None
     assert qcache.lookup("b", "deep", ["hr"]) is None
+
+
+def test_empty_db_path_falls_back_to_file(tmp_path, monkeypatch):
+    """DB_PATH='' (postgres deployments) must not silently use sqlite's temp DB."""
+    from backend.config import settings
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(settings, "db_path", "")
+    qcache.store("fallback query", "quick", ["public"], "fb-answer", ["doc#1"])
+    hit = qcache.lookup("fallback query", "quick", ["public"])
+    assert hit is not None
+    assert hit[0] == "fb-answer"
+    assert (tmp_path / "data" / "answer_cache.db").exists()

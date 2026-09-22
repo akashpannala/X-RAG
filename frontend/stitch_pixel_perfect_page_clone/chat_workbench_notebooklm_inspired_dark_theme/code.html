@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-base": "#131314",
+            "panel-bg": "#1e1f20",
+            "panel-card": "#282a2c",
+            "panel-card-hover": "#303236",
+            "panel-border": "rgba(255, 255, 255, 0.08)",
+            "panel-border-subtle": "rgba(255, 255, 255, 0.05)",
+            "accent-blue": "#a8c7fa",
+            "accent-blue-bg": "rgba(168, 199, 250, 0.12)",
+            "accent-blue-hover": "rgba(168, 199, 250, 0.2)",
+            "text-primary": "#e3e3e3",
+            "text-secondary": "#9aa0a6",
+            "text-muted": "#757b82"
+          },
+          borderRadius: {
+            "card": "1rem",
+            "panel": "1.5rem"
+          },
+          fontFamily: {
+            "geist": ["Geist", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#131314] font-geist text-[#e3e3e3] antialiased flex flex-col h-screen overflow-hidden selection:bg-[#a8c7fa]/20 selection:text-[#a8c7fa]">
+<!-- TOP APPLICATION HEADER -->
+<header class="h-14 bg-[#131314] border-b border-white/[0.06] flex items-center justify-between px-5 shrink-0 z-50">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1a446c] to-[#a8c7fa] flex items-center justify-center text-[#131314] font-bold shadow-sm">
+<span class="material-symbols-outlined text-[19px] text-[#131314]">shield_lock</span>
+</div>
+<span class="text-base font-semibold tracking-tight text-[#e3e3e3]">X-RAG</span>
+</div>
+<div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1e1f20] border border-white/[0.08] text-[#9aa0a6]" title="API Online /healthy">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8ab4f8] opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-[#8ab4f8]"></span>
+</span>
+<span class="font-mono text-[11px] font-medium tracking-tight">/healthy</span>
+</div>
+</div>
+<!-- Right Header Tools & User Profile -->
+<div class="flex items-center gap-2">
+<button class="p-1.5 text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#282a2c] rounded-full transition-colors" title="Toggle theme" type="button">
+<span class="material-symbols-outlined text-[20px]">light_mode</span>
+</button>
+<a class="p-1.5 text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#282a2c] rounded-full transition-colors" data-path="documentation" href="#" title="Documentation">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+</a>
+<div class="h-4 w-px bg-white/[0.08] mx-1 hidden sm:block"></div>
+<!-- Profile dropdown target -->
+<div class="flex items-center gap-2.5 pl-1 cursor-pointer select-none">
+<img alt="Alex Rivera" class="w-7 h-7 rounded-full object-cover border border-white/[0.15]" src="https://lh3.googleusercontent.com/aida/AEtjO1V0lHymxISqihZRLpPZNrD8NQ8sq8sNaA1LbUrlBAzCV161cCjQyn2lfYqEDtNibHjIFFVMqxdvCzC9-hMsWyqxg5kGnux0Wy-A6epjdWR6UZ0CiN2Cu81XtdQCxwdpfFCxzi-26nPdF9xQouN_ioJpEeY35HdV5HA2ResL2QmjlV7WoEZfFEh5TfpxdnclaT1sVwVUY0JalZ1XcmG6lAZqMmwa5O2RUt_RMk3AKxnBrW1mWasYCVIDTAs"/>
+<div class="hidden xl:flex flex-col text-left">
+<span class="text-xs font-medium text-[#e3e3e3] leading-none">Alex Rivera</span>
+<div class="flex items-center gap-1 mt-1">
+<span class="font-mono text-[9px] px-1 py-0.5 rounded bg-[#282a2c] text-[#9aa0a6] leading-none">hr</span>
+<span class="font-mono text-[9px] px-1 py-0.5 rounded bg-[#282a2c] text-[#9aa0a6] leading-none">eng</span>
+<span class="font-mono text-[9px] px-1 py-0.5 rounded bg-[#282a2c] text-[#9aa0a6] leading-none">public</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- 3-PANE WORKSPACE WRAPPER (Floating NotebookLM style panels) -->
+<div class="flex-1 flex flex-row w-full overflow-hidden bg-[#131314] p-3 gap-3">
+<!-- 1. LEFT SIDEBAR: CHAT HISTORY (Floating Rounded-3xl Card) -->
+<aside class="w-72 flex flex-col h-full bg-[#1e1f20] rounded-[24px] border border-white/[0.06] select-none shrink-0 overflow-hidden shadow-xl z-20">
+<!-- Chat History Header with New Chat CTA -->
+<div class="h-14 px-4 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#a8c7fa] text-[20px]">history</span>
+<span class="text-sm font-semibold text-[#e3e3e3]">Chat History</span>
+</div>
+<button class="flex items-center gap-1 px-3 py-1 rounded-full bg-[#a8c7fa] hover:bg-[#c2e7ff] text-[#041e49] text-xs font-semibold transition-all shadow-sm active:scale-95" title="Start new session" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>New</span>
+</button>
+</div>
+<!-- History Filter / Search -->
+<div class="px-3.5 py-2.5 bg-[#1e1f20] shrink-0 border-b border-white/[0.04]">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#131314] border border-white/[0.08] focus-within:border-[#a8c7fa]/60 transition-all">
+<span class="material-symbols-outlined text-[17px] text-[#9aa0a6]">search</span>
+<input class="w-full bg-transparent font-mono text-[12px] text-[#e3e3e3] placeholder:text-[#757b82] focus:outline-none" placeholder="Search conversations..." type="text"/>
+</div>
+</div>
+<!-- Grouped Conversation List -->
+<div class="flex-1 overflow-y-auto px-2.5 py-3 space-y-3.5">
+<!-- Date Group: TODAY -->
+<div class="space-y-1">
+<div class="px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-[#757b82] font-semibold">
+  Today
+</div>
+<!-- Active Conversation -->
+<div class="group relative flex items-start gap-2.5 p-2.5 rounded-2xl bg-[#282a2c] text-[#e3e3e3] border border-white/[0.1] cursor-pointer shadow-sm transition-all">
+<span class="material-symbols-outlined text-[#a8c7fa] text-[18px] mt-0.5 shrink-0">chat_bubble</span>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-medium text-[#e3e3e3] truncate leading-snug">
+  Remote work &amp; ergonomic equipment policy
+</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="font-mono text-[10px] text-[#a8c7fa]">2 citations</span>
+<span class="text-[#757b82] text-[10px]">•</span>
+<span class="font-mono text-[10px] text-[#9aa0a6]">10:42 AM</span>
+</div>
+</div>
+<div class="w-1.5 h-1.5 rounded-full bg-[#a8c7fa] shrink-0 mt-2"></div>
+</div>
+<!-- Other Today Session -->
+<div class="group flex items-start gap-2.5 p-2.5 rounded-2xl hover:bg-[#282a2c]/60 text-[#9aa0a6] hover:text-[#e3e3e3] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[#757b82] text-[18px] mt-0.5 shrink-0 group-hover:text-[#a8c7fa]">forum</span>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-medium text-[#9aa0a6] truncate group-hover:text-[#e3e3e3] transition-colors">
+  API rate limits &amp; enterprise tiers
+</p>
+<span class="font-mono text-[10px] text-[#757b82]">09:15 AM</span>
+</div>
+</div>
+</div>
+<!-- Date Group: YESTERDAY -->
+<div class="space-y-1">
+<div class="px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-[#757b82] font-semibold">
+  Yesterday
+</div>
+<div class="group flex items-start gap-2.5 p-2.5 rounded-2xl hover:bg-[#282a2c]/60 text-[#9aa0a6] hover:text-[#e3e3e3] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[#757b82] text-[18px] mt-0.5 shrink-0 group-hover:text-[#a8c7fa]">forum</span>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-medium text-[#9aa0a6] truncate group-hover:text-[#e3e3e3] transition-colors">
+  Q4 2024 Travel expense tiers
+</p>
+<span class="font-mono text-[10px] text-[#757b82]">4 chunks referenced</span>
+</div>
+</div>
+<div class="group flex items-start gap-2.5 p-2.5 rounded-2xl hover:bg-[#282a2c]/60 text-[#9aa0a6] hover:text-[#e3e3e3] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[#757b82] text-[18px] mt-0.5 shrink-0 group-hover:text-[#a8c7fa]">forum</span>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-medium text-[#9aa0a6] truncate group-hover:text-[#e3e3e3] transition-colors">
+  Health benefits dental coverage
+</p>
+<span class="font-mono text-[10px] text-[#757b82]">Policy handbook Q1</span>
+</div>
+</div>
+</div>
+<!-- Date Group: PREVIOUS 7 DAYS -->
+<div class="space-y-1">
+<div class="px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-[#757b82] font-semibold">
+  Previous 7 Days
+</div>
+<div class="group flex items-start gap-2.5 p-2.5 rounded-2xl hover:bg-[#282a2c]/60 text-[#9aa0a6] hover:text-[#e3e3e3] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[#757b82] text-[18px] mt-0.5 shrink-0 group-hover:text-[#a8c7fa]">forum</span>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-medium text-[#9aa0a6] truncate group-hover:text-[#e3e3e3] transition-colors">
+  SOC 2 Type II audit compliance docs
+</p>
+<span class="font-mono text-[10px] text-[#757b82]">Security corpus</span>
+</div>
+</div>
+<div class="group flex items-start gap-2.5 p-2.5 rounded-2xl hover:bg-[#282a2c]/60 text-[#9aa0a6] hover:text-[#e3e3e3] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[#757b82] text-[18px] mt-0.5 shrink-0 group-hover:text-[#a8c7fa]">forum</span>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-medium text-[#9aa0a6] truncate group-hover:text-[#e3e3e3] transition-colors">
+  New Hire IT Hardware standard kit
+</p>
+<span class="font-mono text-[10px] text-[#757b82]">Asset catalog</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- 2. CENTER COLUMN: CHAT WORKBENCH (NotebookLM main canvas) -->
+<main class="flex-1 flex flex-col h-full min-w-0 relative bg-[#131314] overflow-hidden">
+<!-- Scrollable Message Stream -->
+<div class="flex-1 overflow-y-auto px-4 md:px-8 py-3 space-y-5" id="chatStream">
+<div class="w-full max-w-[760px] mx-auto flex flex-col gap-5">
+<!-- System Context Watermark / Session Bar -->
+<div class="flex items-center justify-between py-1.5 px-3.5 rounded-full bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.06]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#a8c7fa]">security</span>
+<span class="font-mono text-[11px] tracking-wide uppercase">Multi-Tenant Grounding Session • Workspace SEC-889</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-[11px] text-[#757b82]">Rerank: Flash-Rank-v2</span>
+<span class="h-2 w-2 rounded-full bg-[#a8c7fa] inline-block"></span>
+</div>
+</div>
+<!-- 1. User Turn -->
+<div class="flex flex-col items-start gap-1.5 w-full">
+<div class="flex items-center gap-2 text-[#9aa0a6] px-1">
+<span class="text-xs font-medium text-[#e3e3e3]">Alex Rivera</span>
+<span class="text-xs">•</span>
+<span class="font-mono text-[11px] text-[#757b82]">10:42 AM</span>
+</div>
+<div class="w-full max-w-[85%] p-4 rounded-3xl bg-[#1e1f20] border border-white/[0.06] shadow-sm">
+<p class="text-[15px] text-[#e3e3e3] leading-relaxed">
+  What is our company remote work expense and equipment reimbursement policy, and who needs to approve high-value ergonomic items?
+</p>
+</div>
+</div>
+<!-- 2. Assistant Answer Block -->
+<div aria-live="polite" class="flex flex-col items-start gap-2 w-full animate-[fadeIn_0.35s_ease-out]">
+<div class="flex items-center gap-2 px-1">
+<div class="w-5 h-5 rounded-full bg-[#a8c7fa]/20 flex items-center justify-center text-[#a8c7fa]">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+</div>
+<span class="text-xs font-semibold text-[#a8c7fa]">X-RAG Synthesizer</span>
+<span class="text-xs text-[#757b82]">•</span>
+<span class="font-mono text-[10px] bg-[#282a2c] text-[#a8c7fa] px-2 py-0.5 rounded-full font-medium border border-white/[0.05]">RAG Verified</span>
+</div>
+<!-- Prose Paper Canvas (NotebookLM elevated card) -->
+<div class="w-full p-6 rounded-[24px] bg-[#1e1f20] border border-white/[0.08] shadow-lg flex flex-col gap-4">
+<!-- Paragraph 1 -->
+<p class="text-[15px] text-[#e3e3e3] leading-relaxed">
+  Under the Global Remote Work Policy (revised Q1 2025), full-time employees are eligible for an initial 
+  <span class="font-semibold text-white bg-[#282a2c] px-1.5 py-0.5 rounded-md border border-white/[0.08]">$1,000 home office equipment stipend</span> 
+  upon joining, plus a recurring 
+  <span class="font-semibold text-white bg-[#282a2c] px-1.5 py-0.5 rounded-md border border-white/[0.08]">$150/quarter</span> 
+  reimbursement for utilities and high-speed internet 
+  <button class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 ml-1 rounded-full bg-[#a8c7fa]/20 text-[#a8c7fa] hover:bg-[#a8c7fa] hover:text-[#041e49] font-mono text-[11px] font-semibold transition-all duration-150 align-baseline cursor-pointer border border-[#a8c7fa]/30" onclick="highlightDoc('doc-1', 1)" title="Source: employee_handbook_2025_v3.pdf • chunk-14" type="button">
+    [1]
+  </button>.
+</p>
+<!-- Paragraph 2 -->
+<div class="text-[15px] text-[#e3e3e3] leading-relaxed space-y-2">
+<p>
+  For high-value equipment or ergonomic requests (exceeding $500 individually, such as motorized standing desks or ergonomic chairs), standard self-service submission is not permitted. Approval must follow a two-tier review:
+</p>
+<ul class="list-none pl-2 space-y-1.5 my-2">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[#a8c7fa] text-[18px] mt-0.5">check_circle</span>
+<span><strong class="font-medium text-white">Level 1:</strong> Direct People Manager approval via Workday</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[#a8c7fa] text-[18px] mt-0.5">check_circle</span>
+<span>
+<strong class="font-medium text-white">Level 2:</strong> Workplace Ergonomics &amp; Operations Team review 
+  <button class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 ml-1 rounded-full bg-[#a8c7fa]/20 text-[#a8c7fa] hover:bg-[#a8c7fa] hover:text-[#041e49] font-mono text-[11px] font-semibold transition-all duration-150 align-baseline cursor-pointer border border-[#a8c7fa]/30" onclick="highlightDoc('doc-2', 2)" title="Source: ergonomic_equipment_guidelines.docx • chunk-06" type="button">
+    [2]
+  </button>
+</span>
+</li>
+</ul>
+<p>
+  All approved items must be ordered through the approved vendor portal to remain compliant with corporate asset tracking 
+  <button class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 ml-1 rounded-full bg-[#a8c7fa]/20 text-[#a8c7fa] hover:bg-[#a8c7fa] hover:text-[#041e49] font-mono text-[11px] font-semibold transition-all duration-150 align-baseline cursor-pointer border border-[#a8c7fa]/30" onclick="highlightDoc('doc-1', 1)" title="Source: employee_handbook_2025_v3.pdf • chunk-18" type="button">
+    [1]
+  </button>.
+</p>
+</div>
+<!-- Meta Verification & Telemetry Row -->
+<div class="pt-3 mt-1 flex flex-wrap items-center justify-between gap-2 bg-[#18191a]/80 -mx-6 -mb-6 px-6 py-3 rounded-b-[24px] border-t border-white/[0.06]">
+<div class="flex flex-wrap items-center gap-2">
+<!-- Mode Badge -->
+<div class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#282a2c] text-[#9aa0a6] font-mono text-[11px] border border-white/[0.05]">
+<span class="material-symbols-outlined text-[13px] text-[#a8c7fa]">bolt</span>
+<span>Quick Mode</span>
+</div>
+<!-- Cache Hit Pill -->
+<div class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#282a2c] text-[#9aa0a6] font-mono text-[11px] font-medium border border-white/[0.05]">
+<span class="material-symbols-outlined text-[13px] text-[#a8c7fa]">cached</span>
+<span>Cache Hit (12ms)</span>
+</div>
+<!-- Grounding Support Badge -->
+<div class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#a8c7fa]/15 text-[#a8c7fa] font-mono text-[11px] font-semibold border border-[#a8c7fa]/20">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+<span>92% supported</span>
+</div>
+</div>
+<!-- Feedback & Copy Actions -->
+<div class="flex items-center gap-1 text-[#9aa0a6]">
+<button class="p-1.5 rounded-full hover:bg-[#282a2c] hover:text-[#e3e3e3] transition-colors" onclick="notifyCopied(this)" title="Copy answer" type="button">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+<button class="p-1.5 rounded-full hover:bg-[#282a2c] hover:text-[#e3e3e3] transition-colors" title="Accurate answer" type="button">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+</button>
+<button class="p-1.5 rounded-full hover:bg-[#282a2c] hover:text-[#e3e3e3] transition-colors" title="Report discrepancy" type="button">
+<span class="material-symbols-outlined text-[18px]">thumb_down</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Follow-up Suggestion Chips -->
+<div class="w-full mt-1 flex flex-col gap-2">
+<span class="font-mono text-[10px] text-[#757b82] uppercase tracking-wider pl-1 font-semibold">Suggested inquiries</span>
+<div class="flex flex-wrap gap-2">
+<button class="px-3.5 py-2 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] text-[#e3e3e3] text-xs text-left transition-all hover:border-[#a8c7fa]/40 flex items-center gap-1.5 border border-white/[0.08]" onclick="populatePrompt(this.innerText)" type="button">
+<span class="material-symbols-outlined text-[16px] text-[#a8c7fa]">add_circle</span>
+<span>What is the procedure for submitting internet expense receipts?</span>
+</button>
+<button class="px-3.5 py-2 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] text-[#e3e3e3] text-xs text-left transition-all hover:border-[#a8c7fa]/40 flex items-center gap-1.5 border border-white/[0.08]" onclick="populatePrompt(this.innerText)" type="button">
+<span class="material-symbols-outlined text-[16px] text-[#a8c7fa]">add_circle</span>
+<span>Which vendors are approved for ergonomic office chairs?</span>
+</button>
+<button class="px-3.5 py-2 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] text-[#e3e3e3] text-xs text-left transition-all hover:border-[#a8c7fa]/40 flex items-center gap-1.5 border border-white/[0.08]" onclick="populatePrompt(this.innerText)" type="button">
+<span class="material-symbols-outlined text-[16px] text-[#a8c7fa]">add_circle</span>
+<span>Can contractor employees claim the home office stipend?</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Composer Surface (Docked NotebookLM input pill/capsule) -->
+<footer class="px-4 md:px-8 py-3 shrink-0">
+<div class="w-full max-w-[760px] mx-auto flex flex-col gap-2">
+<!-- Mode Controls Bar -->
+<div class="flex items-center justify-between px-1">
+<div class="inline-flex p-0.5 rounded-full bg-[#1e1f20] border border-white/[0.06]">
+<button class="px-3 py-1 rounded-full font-mono text-[11px] font-semibold bg-[#282a2c] text-[#a8c7fa] shadow-sm transition-all flex items-center gap-1" id="modeQuick" onclick="setMode('quick')" type="button">
+<span class="material-symbols-outlined text-[13px]">bolt</span>
+<span>Quick</span>
+</button>
+<button class="px-3 py-1 rounded-full font-mono text-[11px] font-medium text-[#9aa0a6] hover:text-[#e3e3e3] transition-all flex items-center gap-1" id="modeDeep" onclick="setMode('deep')" type="button">
+<span class="material-symbols-outlined text-[13px]">psychology</span>
+<span>Deep Reasoning</span>
+</button>
+</div>
+<div class="hidden sm:flex items-center gap-1 text-[#757b82] font-mono text-[11px]">
+<span class="px-1.5 py-0.5 rounded bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">Enter ↵</span>
+<span>to send</span>
+<span class="text-[#757b82]">•</span>
+<span class="px-1.5 py-0.5 rounded bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">Shift+Enter</span>
+<span>newline</span>
+</div>
+</div>
+<!-- Input Surface Box (Pill-like NotebookLM input) -->
+<div class="relative flex items-center w-full rounded-[28px] bg-[#1e1f20] shadow-md border border-white/[0.08] focus-within:border-[#a8c7fa]/60 focus-within:bg-[#232426] transition-all">
+<textarea class="w-full bg-transparent resize-none py-3.5 pl-5 pr-20 text-[14px] text-[#e3e3e3] placeholder:text-[#757b82] focus:outline-none leading-relaxed max-h-36 overflow-y-auto" id="composerInput" placeholder="Ask your sources..." rows="2"></textarea>
+<div class="absolute right-3 bottom-2.5 flex items-center gap-1.5">
+<button class="p-2 rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#282a2c] transition-colors" title="Attach context chunk" type="button">
+<span class="material-symbols-outlined text-[20px]">attach_file</span>
+</button>
+<button class="w-9 h-9 rounded-full bg-[#a8c7fa] text-[#041e49] hover:bg-[#c2e7ff] transition-all active:scale-95 flex items-center justify-center shadow-md font-semibold" onclick="triggerSend()" title="Synthesize response" type="button">
+<span class="material-symbols-outlined text-[20px]">arrow_upward</span>
+</button>
+</div>
+</div>
+<!-- Subtext attribution -->
+<div class="flex items-center justify-between text-[#757b82] px-2">
+<p class="font-mono text-[11px]">
+  X-RAG references indexed workspace sources with verified citations.
+</p>
+<div class="flex items-center gap-1 font-mono text-[11px] text-[#9aa0a6]">
+<span class="material-symbols-outlined text-[13px] text-[#a8c7fa]">lock</span>
+<span>Workspace Private</span>
+</div>
+</div>
+</div>
+</footer>
+</main>
+<!-- 3. RIGHT SIDEBAR: SOURCES RAIL (Floating Rounded-3xl NotebookLM panel) -->
+<aside class="w-80 flex flex-col h-full bg-[#1e1f20] rounded-[24px] border border-white/[0.06] select-none shrink-0 overflow-hidden shadow-xl z-20">
+<!-- Rail Header -->
+<div class="h-14 px-4 bg-[#1e1f20] border-b border-white/[0.06] flex items-center justify-between shrink-0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#a8c7fa] text-[20px]">folder_open</span>
+<span class="text-sm font-semibold text-[#e3e3e3]">Sources</span>
+<span class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#282a2c] text-[#a8c7fa] font-medium border border-white/[0.05]">4 active</span>
+</div>
+</div>
+<!-- Filter / Search mini-bar -->
+<div class="px-3.5 py-2.5 bg-[#1e1f20] shrink-0 border-b border-white/[0.04]">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#131314] border border-white/[0.08] focus-within:border-[#a8c7fa]/60 transition-all">
+<span class="material-symbols-outlined text-[17px] text-[#9aa0a6]">search</span>
+<input class="w-full bg-transparent font-mono text-[12px] text-[#e3e3e3] placeholder:text-[#757b82] focus:outline-none" placeholder="Filter indexed corpus..." type="text"/>
+</div>
+</div>
+<!-- Document Cards Stream -->
+<div class="flex-1 overflow-y-auto p-3 space-y-2.5">
+<!-- Doc 1: Active Cited [1] -->
+<article class="group relative p-3 rounded-2xl bg-[#282a2c] hover:bg-[#303236] transition-all duration-200 cursor-pointer shadow-sm border border-white/[0.08]" id="doc-1">
+<div class="absolute left-0 top-3 bottom-3 w-1 bg-[#a8c7fa] rounded-r-full"></div>
+<div class="flex items-start justify-between gap-2 pl-1">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="p-1.5 rounded-lg bg-red-950/60 text-red-400 shrink-0 mt-0.5 border border-red-900/40">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+</div>
+<div class="min-w-0 flex flex-col">
+<h3 class="text-xs font-medium text-[#e3e3e3] truncate group-hover:text-[#a8c7fa] transition-colors" title="employee_handbook_2025_v3.pdf">
+  employee_handbook_2025_v3.pdf
+</h3>
+<span class="font-mono text-[10px] text-[#9aa0a6] mt-0.5">42 chunks • 1.4 MB</span>
+</div>
+</div>
+<!-- Citation Match Pill -->
+<span class="inline-flex items-center justify-center h-5 px-1.5 rounded-full bg-[#a8c7fa] text-[#041e49] font-mono text-[10px] font-bold shrink-0 shadow-sm">
+  [1]
+</span>
+</div>
+<!-- Tags & Confidence -->
+<div class="mt-2.5 flex items-center justify-between pl-1">
+<div class="flex items-center gap-1">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">hr</span>
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">public</span>
+</div>
+<span class="font-mono text-[10px] text-[#a8c7fa] font-medium">96% recall</span>
+</div>
+</article>
+<!-- Doc 2: Active Cited [2] -->
+<article class="group relative p-3 rounded-2xl bg-[#282a2c] hover:bg-[#303236] transition-all duration-200 cursor-pointer shadow-sm border border-white/[0.08]" id="doc-2">
+<div class="absolute left-0 top-3 bottom-3 w-1 bg-[#a8c7fa] rounded-r-full"></div>
+<div class="flex items-start justify-between gap-2 pl-1">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="p-1.5 rounded-lg bg-blue-950/60 text-[#a8c7fa] shrink-0 mt-0.5 border border-blue-900/40">
+<span class="material-symbols-outlined text-[18px]">article</span>
+</div>
+<div class="min-w-0 flex flex-col">
+<h3 class="text-xs font-medium text-[#e3e3e3] truncate group-hover:text-[#a8c7fa] transition-colors" title="ergonomic_equipment_guidelines.docx">
+  ergonomic_equipment_guidelines.docx
+</h3>
+<span class="font-mono text-[10px] text-[#9aa0a6] mt-0.5">18 chunks • 480 KB</span>
+</div>
+</div>
+<!-- Citation Match Pill -->
+<span class="inline-flex items-center justify-center h-5 px-1.5 rounded-full bg-[#a8c7fa] text-[#041e49] font-mono text-[10px] font-bold shrink-0 shadow-sm">
+  [2]
+</span>
+</div>
+<!-- Tags & Confidence -->
+<div class="mt-2.5 flex items-center justify-between pl-1">
+<div class="flex items-center gap-1">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">hr</span>
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">ops</span>
+</div>
+<span class="font-mono text-[10px] text-[#a8c7fa] font-medium">89% recall</span>
+</div>
+</article>
+<!-- Doc 3: Uncited Available Context -->
+<article class="group relative p-3 rounded-2xl bg-[#1e1f20] hover:bg-[#282a2c] transition-all duration-200 cursor-pointer border border-white/[0.05]" id="doc-3">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="p-1.5 rounded-lg bg-[#282a2c] text-[#9aa0a6] shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">table_view</span>
+</div>
+<div class="min-w-0 flex flex-col">
+<h3 class="text-xs font-medium text-[#9aa0a6] truncate group-hover:text-[#e3e3e3] transition-colors" title="remote_stipend_allowance_tiers.csv">
+  remote_stipend_allowance_tiers.csv
+</h3>
+<span class="font-mono text-[10px] text-[#757b82] mt-0.5">8 chunks • 92 KB</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[16px] text-[#757b82]">remove</span>
+</div>
+<div class="mt-2.5 flex items-center gap-1">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#282a2c] text-[#757b82]">finance</span>
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#282a2c] text-[#757b82]">hr</span>
+</div>
+</article>
+<!-- Doc 4: Uncited Available Context -->
+<article class="group relative p-3 rounded-2xl bg-[#1e1f20] hover:bg-[#282a2c] transition-all duration-200 cursor-pointer border border-white/[0.05]" id="doc-4">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="p-1.5 rounded-lg bg-[#282a2c] text-[#9aa0a6] shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">code</span>
+</div>
+<div class="min-w-0 flex flex-col">
+<h3 class="text-xs font-medium text-[#9aa0a6] truncate group-hover:text-[#e3e3e3] transition-colors" title="it_hardware_standard_catalog.md">
+  it_hardware_standard_catalog.md
+</h3>
+<span class="font-mono text-[10px] text-[#757b82] mt-0.5">24 chunks • 64 KB</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[16px] text-[#757b82]">remove</span>
+</div>
+<div class="mt-2.5 flex items-center gap-1">
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#282a2c] text-[#757b82]">eng</span>
+<span class="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-[#282a2c] text-[#757b82]">public</span>
+</div>
+</article>
+</div>
+<!-- Quick Ingest Dropzone Footer (NotebookLM style drop-card) -->
+<div class="p-3 bg-[#1e1f20] shrink-0 border-t border-white/[0.06] flex flex-col gap-2">
+<div class="w-full p-3 rounded-2xl bg-[#131314] border border-dashed border-white/[0.12] flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-[#a8c7fa]/50 hover:bg-[#18191a] transition-all">
+<span class="material-symbols-outlined text-[20px] text-[#a8c7fa]">cloud_upload</span>
+<span class="text-xs font-medium text-[#e3e3e3]">Drop files here to index</span>
+<span class="font-mono text-[10px] text-[#757b82]">PDF, DOCX, CSV or Markdown up to 50MB</span>
+</div>
+<button class="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full bg-[#282a2c] hover:bg-[#323438] text-[#a8c7fa] border border-white/[0.08] text-xs font-semibold transition-all shadow-sm active:scale-95" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>Add Document</span>
+</button>
+</div>
+</aside>
+</div>
+<script>
+    // Highlight source document when citation pill is activated
+    function highlightDoc(docId, citationNum) {
+      const docCard = document.getElementById(docId);
+      if (!docCard) return;
+
+      // Scroll source rail to the referenced card
+      docCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Flash background for visual feedback
+      docCard.classList.remove('bg-[#282a2c]');
+      docCard.classList.add('bg-[#1a446c]/40', 'ring-1', 'ring-[#a8c7fa]');
+
+      setTimeout(() => {
+        docCard.classList.remove('bg-[#1a446c]/40', 'ring-1', 'ring-[#a8c7fa]');
+        docCard.classList.add('bg-[#282a2c]');
+      }, 1200);
+    }
+
+    // Populate prompt textarea from recommendation chips
+    function populatePrompt(text) {
+      const input = document.getElementById('composerInput');
+      if (!input) return;
+      input.value = text.trim();
+      input.focus();
+    }
+
+    // Segmented Mode Control
+    function setMode(mode) {
+      const quickBtn = document.getElementById('modeQuick');
+      const deepBtn = document.getElementById('modeDeep');
+
+      if (mode === 'quick') {
+        quickBtn.className = "px-3 py-1 rounded-full font-mono text-[11px] font-semibold bg-[#282a2c] text-[#a8c7fa] shadow-sm transition-all flex items-center gap-1";
+        deepBtn.className = "px-3 py-1 rounded-full font-mono text-[11px] font-medium text-[#9aa0a6] hover:text-[#e3e3e3] transition-all flex items-center gap-1";
+      } else {
+        deepBtn.className = "px-3 py-1 rounded-full font-mono text-[11px] font-semibold bg-[#282a2c] text-[#a8c7fa] shadow-sm transition-all flex items-center gap-1";
+        quickBtn.className = "px-3 py-1 rounded-full font-mono text-[11px] font-medium text-[#9aa0a6] hover:text-[#e3e3e3] transition-all flex items-center gap-1";
+      }
+    }
+
+    // Copy feedback trigger
+    function notifyCopied(btn) {
+      const icon = btn.querySelector('.material-symbols-outlined');
+      if (!icon) return;
+      const prevText = icon.textContent;
+      icon.textContent = 'check';
+      btn.classList.add('text-[#a8c7fa]');
+      setTimeout(() => {
+        icon.textContent = prevText;
+        btn.classList.remove('text-[#a8c7fa]');
+      }, 1500);
+    }
+
+    // Keyboard shortcut listener for composer
+    document.getElementById('composerInput')?.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        triggerSend();
+      }
+    });
+
+    function triggerSend() {
+      const input = document.getElementById('composerInput');
+      if (!input || !input.value.trim()) return;
+      input.value = '';
+      const chatStream = document.getElementById('chatStream');
+      chatStream.scrollTo({ top: chatStream.scrollHeight, behavior: 'smooth' });
+    }
+  </script>
+</body></html>

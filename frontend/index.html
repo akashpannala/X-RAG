@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html class="dark">
+<head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"error-container":"#ffdad6","surface-container":"#eceef0","surface-container-low":"#f2f4f6","on-primary-container":"#adeaff","surface-variant":"#e0e3e5","primary-container":"#1a6c81","on-tertiary-fixed":"#131b2e","tertiary-fixed-dim":"#bec6e0","surface-bright":"#f7f9fb","surface-dim":"#d8dadc","tertiary-container":"#5b6379","surface-container-lowest":"#ffffff","secondary":"#505f76","surface-tint":"#10677c","primary-fixed":"#b3ebff","on-tertiary-container":"#d8e0fa","tertiary":"#434b61","outline-variant":"#bfc8cc","on-surface-variant":"#3f484c","primary-fixed-dim":"#8ad1e8","on-primary-fixed-variant":"#004e5f","on-background":"#191c1e","surface-container-high":"#e6e8ea","background":"#f7f9fb","outline":"#6f797c","on-tertiary":"#ffffff","on-surface":"#191c1e","inverse-primary":"#8ad1e8","on-secondary-fixed":"#0b1c30","inverse-surface":"#2d3133","on-tertiary-fixed-variant":"#3f465c","primary":"#005365","secondary-fixed":"#d3e4fe","error":"#ba1a1a","on-error":"#ffffff","on-secondary-fixed-variant":"#38485d","surface-container-highest":"#e0e3e5","on-secondary-container":"#54647a","on-secondary":"#ffffff","on-primary-fixed":"#001f27","secondary-container":"#d0e1fb","secondary-fixed-dim":"#b7c8e1","tertiary-fixed":"#dae2fd","on-primary":"#ffffff","inverse-on-surface":"#eff1f3","on-error-container":"#93000a","surface":"#f7f9fb"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xl":"1.5rem","space-xs":"0.25rem","margin":"1rem","space-lg":"1rem","gutter":"1rem","space-md":"0.75rem","space-sm":"0.5rem"},"fontFamily":{"body-lg":["Geist"],"label-md":["JetBrains Mono"],"headline-md":["Geist"],"headline-xl-mobile":["Geist"],"body-sm":["Geist"],"headline-lg":["Geist"],"code-inline":["JetBrains Mono"],"headline-xl":["Geist"],"body-md":["Geist"],"label-sm":["JetBrains Mono"]},"fontSize":{"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0em","fontWeight":"500"}],"headline-md":["18px",{"lineHeight":"26px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"16px","letterSpacing":"0em","fontWeight":"400"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"600"}],"code-inline":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.025em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","letterSpacing":"-0.005em","fontWeight":"400"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"500"}]}}}}</script></head>
+<body class="bg-[#0e0e11] font-body-md text-body-md text-[#e2e8f0] min-h-screen flex flex-col justify-between selection:bg-[#1a6c81]/40 selection:text-[#a8c7fa] antialiased">
+  <header class="w-full bg-[#131418]/85 backdrop-blur-xl border-b border-white/[0.08] sticky top-0 z-50">
+    <div class="h-16 w-full px-gutter flex items-center justify-between">
+      <div class="flex items-center gap-space-sm">
+        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-[#1a446c] to-[#a8c7fa] text-[#131314] font-headline-md text-headline-md font-bold shadow-sm">
+          <span class="material-symbols-outlined text-[19px] text-[#131314]">shield_lock</span>
+        </div>
+        <span class="font-headline-md text-headline-md tracking-tight text-[#f1f3f4]">X-RAG</span>
+        <span class="px-space-xs py-0.5 rounded bg-[#1e2025] border border-white/[0.08] text-[#9aa0a6] font-label-sm text-label-sm uppercase tracking-wider">Workbench</span>
+      </div>
+      <div class="flex items-center gap-space-md">
+        <a class="flex items-center gap-space-xs font-label-md text-label-md text-[#9aa0a6] hover:text-[#f1f3f4] transition-colors" href="http://localhost:8001/docs" target="_blank" rel="noreferrer">
+          <span class="material-symbols-outlined text-[16px]">terminal</span>
+          <span>API</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 flex items-center justify-center px-gutter py-space-xl bg-[#0e0e11]">
+    <div class="flex flex-col w-full items-center justify-center relative overflow-hidden py-space-xl">
+      <div class="absolute w-[580px] h-[580px] rounded-full bg-[#1a6c81]/15 blur-[140px] pointer-events-none -top-24 -left-20"></div>
+      <div class="absolute w-[450px] h-[450px] rounded-full bg-[#004e5f]/15 blur-[120px] pointer-events-none -bottom-24 -right-12"></div>
+
+      <div class="relative w-full max-w-[420px] px-gutter z-10">
+        <div class="flex flex-col items-center text-center mb-space-lg">
+          <div class="flex items-center gap-space-sm mb-space-sm">
+            <div class="w-10 h-10 rounded-xl bg-[#1e2025] border border-white/[0.1] flex items-center justify-center p-1.5 shadow-md">
+              <img alt="X-RAG Shield Identity" class="w-full h-full object-contain" src="assets/logo-short.png"/>
+            </div>
+            <div class="flex flex-col items-start">
+              <div class="flex items-center gap-space-xs">
+                <span class="font-headline-md text-headline-md tracking-tight text-[#f1f3f4]">X-RAG</span>
+                <span class="px-space-xs py-0.5 rounded bg-[#132d36] text-[#8ad1e8] border border-[#1a6c81]/50 font-label-sm text-label-sm tracking-wide">ENTERPRISE</span>
+              </div>
+              <span class="font-label-sm text-label-sm text-[#9aa0a6] uppercase tracking-wider">Workbench v2.4</span>
+            </div>
+          </div>
+          <h1 class="font-headline-xl text-headline-xl text-[#f8fafc] tracking-tight mt-space-xs">Welcome back</h1>
+          <p class="font-body-md text-body-md text-[#9aa0a6] mt-1 max-w-[320px]">
+            Sign in with your workspace account to query indexed sources.
+          </p>
+        </div>
+
+        <div class="bg-[#1b1c20] border border-white/[0.08] shadow-2xl rounded-2xl p-space-xl flex flex-col gap-space-lg">
+          <div class="relative flex items-center justify-center">
+            <div class="w-full h-px bg-white/[0.08]"></div>
+            <span class="absolute bg-[#1b1c20] px-space-sm font-label-sm text-label-sm text-[#757b82] uppercase tracking-widest">email credentials</span>
+          </div>
+
+          <form class="flex flex-col gap-space-md" id="loginForm">
+            <div id="loginError" class="hidden rounded-lg border border-[#ba1a1a]/40 bg-[#ba1a1a]/10 px-3 py-2 font-body-sm text-body-sm text-[#ffb4ab]"></div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="flex items-center justify-between font-label-md text-label-md text-[#cbd5e1]" for="username">
+                <span>Username</span>
+                <span class="font-label-sm text-label-sm text-[#757b82] font-normal">Internal directory</span>
+              </label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3 text-[18px] text-[#64748b] pointer-events-none">person</span>
+                <input class="w-full h-10 pl-9 pr-3 rounded-lg bg-[#141519] border border-white/[0.12] text-[#f8fafc] placeholder:text-[#64748b] font-body-md text-body-md focus:border-[#22d3ee] focus:ring-1 focus:ring-[#22d3ee]/50 focus:outline-none transition-all" id="username" name="username" placeholder="luffy" autocomplete="username" required="" type="text"/>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between font-label-md text-label-md">
+                <label class="text-[#cbd5e1]" for="password">Password</label>
+              </div>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3 text-[18px] text-[#64748b] pointer-events-none">lock</span>
+                <input class="w-full h-10 pl-9 pr-10 rounded-lg bg-[#141519] border border-white/[0.12] text-[#f8fafc] placeholder:text-[#64748b] font-body-md text-body-md focus:border-[#22d3ee] focus:ring-1 focus:ring-[#22d3ee]/50 focus:outline-none transition-all" id="password" name="password" placeholder="••••••••••••" autocomplete="current-password" required="" type="password"/>
+                <button aria-label="Toggle password visibility" class="absolute right-2.5 p-1 rounded hover:bg-[#282a2c] text-[#9aa0a6] hover:text-[#f8fafc] transition-colors flex items-center justify-center" id="togglePasswordBtn" type="button">
+                  <span class="material-symbols-outlined text-[18px]" id="passwordIcon">visibility_off</span>
+                </button>
+              </div>
+            </div>
+
+            <button class="w-full h-10 mt-1 rounded-lg bg-[#1a6c81] hover:bg-[#14596b] text-white font-headline-md text-headline-md tracking-wide flex items-center justify-center gap-space-xs transition-all active:scale-[0.99] shadow-lg shadow-[#1a6c81]/25 hover:shadow-[#1a6c81]/40 border border-[#8ad1e8]/20 disabled:opacity-60 disabled:cursor-not-allowed" id="submitBtn" type="submit">
+              <span class="material-symbols-outlined text-[18px]" id="submitIcon">vpn_key</span>
+              <span id="submitLabel">Sign In to Workspace</span>
+            </button>
+          </form>
+
+          <div class="bg-[#15161a] border border-white/[0.06] rounded-xl p-space-sm flex flex-col gap-space-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-label-sm text-label-sm text-[#9aa0a6] uppercase tracking-wider flex items-center gap-1 font-semibold">
+                <span class="material-symbols-outlined text-[14px] text-[#38bdf8]">science</span>
+                Demo Presets
+              </span>
+              <span class="font-label-sm text-label-sm text-[#64748b]">Click to populate</span>
+            </div>
+            <div class="grid grid-cols-2 gap-space-xs">
+              <button class="text-left px-2 py-1.5 rounded-lg bg-[#1e2025] hover:bg-[#282a2f] border border-white/[0.04] transition-colors flex flex-col" data-demo-user="luffy" type="button">
+                <span class="font-label-md text-label-md text-[#e2e8f0]">luffy@corp</span>
+                <span class="font-label-sm text-label-sm text-[#94a3b8]">HR + public · quick mode</span>
+              </button>
+              <button class="text-left px-2 py-1.5 rounded-lg bg-[#1e2025] hover:bg-[#282a2f] border border-white/[0.04] transition-colors flex flex-col" data-demo-user="admin" type="button">
+                <span class="font-label-md text-label-md text-[#e2e8f0]">admin@corp</span>
+                <span class="font-label-sm text-label-sm text-[#94a3b8]">All departments</span>
+              </button>
+            </div>
+            <span class="font-label-sm text-label-sm text-[#64748b]">password for all demos: <span class="font-label-md">pass</span></span>
+          </div>
+        </div>
+
+        <div class="mt-space-lg flex flex-col items-center gap-space-xs text-center font-label-sm text-label-sm text-[#9aa0a6]">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" id="loginHealthDot"></span>
+            <span class="text-[#cbd5e1]" id="loginHealthText">API connecting…</span>
+            <span class="text-[#64748b]">·</span>
+            <span class="text-[#94a3b8]">Pre-search ACL active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="w-full py-space-md bg-[#0e0e11] border-t border-white/[0.06]">
+    <div class="w-full px-gutter flex flex-col sm:flex-row items-center justify-between gap-space-sm font-label-sm text-label-sm text-[#64748b]">
+      <div>Grounded Retrieval &amp; Synthesis System • v2.4-preview</div>
+      <div class="flex items-center gap-space-md">
+        <a class="hover:text-[#94a3b8] transition-colors" href="http://localhost:8001/docs" target="_blank" rel="noreferrer">API</a>
+      </div>
+    </div>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

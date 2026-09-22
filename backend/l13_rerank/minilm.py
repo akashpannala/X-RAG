@@ -1,4 +1,6 @@
 """L14: MiniLM single-stage rerank (Quick mode). Cascade second stage = Phase 3."""
+import math
+
 from sentence_transformers import CrossEncoder
 
 from backend.config import settings
@@ -16,6 +18,13 @@ def get_reranker(name: str | None = None):
     return _model
 
 
+def _sigmoid(x: float) -> float:
+    if x >= 0:
+        return 1.0 / (1.0 + math.exp(-x))
+    e = math.exp(x)
+    return e / (1.0 + e)
+
+
 def rerank(query: str, hits: list[dict], top_n: int) -> list[dict]:
     if not hits:
         return hits
@@ -25,5 +34,7 @@ def rerank(query: str, hits: list[dict], top_n: int) -> list[dict]:
         return hits  # MiniLM is the ultimate fallback — return as-is rather than crash
     ranked = sorted(zip(scores, hits), key=lambda x: float(x[0]), reverse=True)
     for sc, h in ranked:
-        h["score"] = float(sc)  # write rerank score back so downstream gates use it
+        # CrossEncoder emits raw logits; confident() and cascade() document a
+        # 0-1 reranker scale — map through sigmoid before writing back.
+        h["score"] = _sigmoid(float(sc))
     return [h for _, h in ranked[:top_n]]

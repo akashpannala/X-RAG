@@ -10,8 +10,11 @@ from backend.l08_freshness.store import meta_conn
 def recent_queries(user_id: int, n: int = 5) -> list[str]:
     con = meta_conn("data/meta.db")
     try:
+        from backend.l14_security.auth import _ph_n
+
+        ph1, ph2 = _ph_n(con, 1), _ph_n(con, 1)
         rows = con.execute(
-            "SELECT query FROM conversations WHERE user_id=? ORDER BY id DESC LIMIT ?",
+            f"SELECT query FROM conversations WHERE user_id={ph1} ORDER BY id DESC LIMIT {ph2}",
             (user_id, n),
         ).fetchall()
         return [r[0] for r in reversed(rows)]

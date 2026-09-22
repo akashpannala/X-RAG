@@ -12,10 +12,12 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS users(
   id INTEGER PRIMARY KEY, username TEXT UNIQUE, password_hash TEXT, groups_json TEXT);
 CREATE TABLE IF NOT EXISTS documents(
-  id INTEGER PRIMARY KEY, filename TEXT UNIQUE, allowed_groups_json TEXT, hash TEXT);
+  id INTEGER PRIMARY KEY, filename TEXT UNIQUE, allowed_groups_json TEXT, hash TEXT,
+  chunks INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS conversations(
   id INTEGER PRIMARY KEY, user_id INTEGER, query TEXT, answer TEXT,
-  mode TEXT, score REAL, contexts_json TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+  mode TEXT, score REAL, contexts_json TEXT, citations_json TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 """
 
 
@@ -59,10 +61,14 @@ def meta_conn(path: str | None = None):
                         "SELECT column_name FROM information_schema.columns WHERE table_name='documents'").fetchall()}
                     if "allowed_groups_json" not in has_docs:
                         c.execute("ALTER TABLE documents ADD COLUMN allowed_groups_json TEXT DEFAULT '[\"public\"]'")
+                    if "chunks" not in has_docs:
+                        c.execute("ALTER TABLE documents ADD COLUMN chunks INTEGER DEFAULT 0")
                     has_convs = {r[0] for r in c.execute(
                         "SELECT column_name FROM information_schema.columns WHERE table_name='conversations'").fetchall()}
                     if "contexts_json" not in has_convs:
                         c.execute("ALTER TABLE conversations ADD COLUMN contexts_json TEXT")
+                    if "citations_json" not in has_convs:
+                        c.execute("ALTER TABLE conversations ADD COLUMN citations_json TEXT")
                     c.commit()
                 except Exception as e:
                     _logger.warning("postgres migration check failed: %s", e)
@@ -80,9 +86,13 @@ def meta_conn(path: str | None = None):
     cols = {r[1] for r in c.execute("PRAGMA table_info(documents)")}
     if "allowed_groups_json" not in cols:
         c.execute("ALTER TABLE documents ADD COLUMN allowed_groups_json TEXT DEFAULT '[\"public\"]'")
+    if "chunks" not in cols:
+        c.execute("ALTER TABLE documents ADD COLUMN chunks INTEGER DEFAULT 0")
     ccols = {r[1] for r in c.execute("PRAGMA table_info(conversations)")}
     if "contexts_json" not in ccols:
         c.execute("ALTER TABLE conversations ADD COLUMN contexts_json TEXT")
+    if "citations_json" not in ccols:
+        c.execute("ALTER TABLE conversations ADD COLUMN citations_json TEXT")
     c.commit()
     return c
 

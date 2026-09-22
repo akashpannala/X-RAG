@@ -8,6 +8,7 @@ import functools
 import hashlib
 import json
 import sqlite3
+from pathlib import Path
 
 import numpy as np
 
@@ -21,7 +22,12 @@ _PARTITION_CAP = 500  # per <mode>|<groups> partition, not global
 
 
 def _conn():
-    c = sqlite3.connect(settings.db_path)
+    # DB_PATH is empty in postgres deployments — sqlite3.connect("") would open a
+    # private temp DB that vanishes on close, so the cache could never hit.
+    path = settings.db_path or "data/answer_cache.db"
+    if path != ":memory:":
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+    c = sqlite3.connect(path)
     c.execute(SCHEMA)
     return c
 
