@@ -44,10 +44,11 @@ def sqlite_conn(tmp_settings):
 @pytest.fixture(autouse=True)
 def _isolate_sparse_index(tmp_path, monkeypatch):
     """Keep BM25/SPLADE pickles out of data/ during tests."""
-    from backend.L06_sparse import bm25
+    from backend.L06_sparse import bm25, splade
 
     path = tmp_path / "bm25.pkl"
     monkeypatch.setattr(bm25, "INDEX_PATH", path)
     monkeypatch.setattr(bm25, "_index", None)
     monkeypatch.setattr(bm25, "_meta", [])
+    monkeypatch.setattr(splade, "INDEX_PATH", tmp_path / "splade.pkl")
     yield

@@ -27,11 +27,10 @@ Health: `GET /health` → `{"status":"ok", ...}`
 
 ### Seed users
 
-| Username | Password | Groups |
-|----------|----------|--------|
-| `admin`  | `pass`   | hr, eng, public |
-| `luffy`  | `pass`   | hr, public |
-| `zoro`   | `pass`   | eng, public |
+| Username | Password   | Groups     |
+|----------|------------|------------|
+| `LUFFY`  | `password` | hr, public |
+| `ZORO`   | `password` | eng, public |
 
 ---
 

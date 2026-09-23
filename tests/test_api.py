@@ -20,6 +20,7 @@ def _install_stub_store():
     mod.__path__ = [str(real_pkg_dir)]  # mark as package for submodule imports
     mod.search = MagicMock(return_value=[])
     mod.add_docs = MagicMock()
+    mod.delete_doc = MagicMock()
     mod.fetch_by_doc = MagicMock(return_value=[])
     mod.reset_collection = MagicMock()
     mod.search.__module__ = "backend.l07_storage.pgvector"  # health reports pgvector
@@ -176,3 +177,68 @@ def test_conversations_returns_own_rows(client):
     assert mine["citations"] == ["[docA#1]"]
     assert mine["mode"] == "quick"
     assert mine["created_at"]
+
+
+def test_reingest_replaces_doc_and_groups(client, monkeypatch, tmp_path):
+    """Re-ingesting a filename must drop old vectors/groups — no stale ACL rows."""
+    import json
+
+    import backend.api as api_mod
+    import backend.l05_enrichment.enrich as enrich_mod
+    from backend import l07_storage as store
+    from backend.L06_sparse import bm25
+    from backend.config import settings
+    from backend.l08_freshness.store import meta_conn
+
+    # keep the test offline and repo-clean: no kuzu graph writes, no spacy pass
+    monkeypatch.setattr(api_mod, "kuzu_record", lambda *a, **k: None)
+    monkeypatch.setattr(enrich_mod, "extract_entities", lambda text: [])
+    uploads = tmp_path / "uploads"
+    uploads.mkdir(exist_ok=True)
+    monkeypatch.setattr(settings, "upload_dir", str(uploads))
+
+    client.post(
+        "/auth/register",
+        json={"username": "reingestuser", "password": "password1"},
+    )
+    r = client.post(
+        "/auth/login", json={"username": "reingestuser", "password": "password1"}
+    )
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    payload = b"# Handbook\n\nEmployees get 20 paid days off each year.\n"
+
+    def up(groups):
+        return client.post(
+            f"/ingest?allowed_groups={groups}&enrich=false",
+            files={"f": ("reingest_doc.md", payload, "text/markdown")},
+            headers=headers,
+        )
+
+    r1 = up("public")
+    assert r1.status_code == 200, r1.text
+
+    store.delete_doc.reset_mock()
+    store.add_docs.reset_mock()
+    r2 = up("hr")
+    assert r2.status_code == 200, r2.text
+
+    # replace-on-reingest: old store rows dropped before the new add
+    assert store.delete_doc.call_args_list[0].args == ("reingest_doc",)
+    assert store.add_docs.call_count == 1
+
+    # metadata row reflects only the new groups (no stale public ACL)
+    con = meta_conn(settings.db_path)
+    rows = con.execute(
+        "SELECT allowed_groups_json FROM documents WHERE filename = ?",
+        ("reingest_doc.md",),
+    ).fetchall()
+    con.close()
+    assert len(rows) == 1
+    assert json.loads(rows[0][0]) == ["hr"]
+
+    # bm25 index rebuilt: only new-group rows for this doc
+    _, meta = bm25._load()
+    mine = [m for m in meta if m["doc"] == "reingest_doc"]
+    assert mine, "bm25 must index the re-ingested doc"
+    assert all(m["allowed_groups"] == ["hr"] for m in mine)

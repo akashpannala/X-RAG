@@ -174,6 +174,23 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
             computed = emb.embed_documents(to_embed)
             it = iter(computed)
             vectors = [v if v is not None else next(it) for v in vectors]
+    # replace-on-reingest: old vectors keep their old allowed_groups — drop them first
+    try:
+        store.delete_doc(dest.stem)
+    except Exception as e:
+        log.warning("store.delete_doc(%s) failed: %s", dest.stem, e)
+    try:
+        from backend.L06_sparse.bm25 import delete as bm25_delete
+
+        bm25_delete(dest.stem)
+    except Exception as e:
+        log.warning("bm25 delete(%s) failed: %s", dest.stem, e)
+    try:
+        from backend.L06_sparse.splade import delete as splade_delete
+
+        splade_delete(dest.stem)
+    except Exception as e:
+        log.warning("splade delete(%s) failed: %s", dest.stem, e)
     store.add_docs(texts, payloads, vectors)
     try:
         from backend.L06_sparse.bm25 import add as bm25_add

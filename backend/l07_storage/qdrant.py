@@ -51,6 +51,17 @@ def add_docs(texts: list[str], payloads: list[dict], vectors: list[list[float]] 
     ])
 
 
+def delete_doc(doc: str) -> None:
+    """Replace-on-reingest: drop all points of a doc before re-adding it."""
+    try:
+        _client().delete(
+            settings.vector_collection,
+            points_selector=Filter(must=[FieldCondition(key="doc", match=MatchValue(value=doc))]),
+        )
+    except Exception as e:
+        _logger.warning("qdrant delete_doc failed: %s", e)
+
+
 def search(query: str, top_k: int, qfilter: Filter | None = None) -> list[dict]:
     try:
         qv = get_embeddings(settings.embed_model).embed_query(query)

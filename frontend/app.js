@@ -108,7 +108,7 @@ function initLogin() {
   document.querySelectorAll("[data-demo-user]").forEach((b) => {
     b.addEventListener("click", () => {
       document.getElementById("username").value = b.dataset.demoUser;
-      document.getElementById("password").value = "pass";
+      document.getElementById("password").value = "password";
       document.getElementById("password").focus();
     });
   });
@@ -156,12 +156,6 @@ function initLogin() {
       submitLabel.textContent = "Sign In to Workspace";
     }
   });
-
-  pingHealth(
-    document.getElementById("loginHealthText"),
-    document.getElementById("loginHealthDot"),
-    (ok) => (ok ? "API online · :8001" : "API unreachable")
-  );
 }
 
 /* ---------------- chat page: state ---------------- */
@@ -173,6 +167,7 @@ let docs = [];
 let historyRows = [];
 let activeHistoryId = null;
 let pendingFile = null;
+let lastUploadGroups = null;
 let lastCiteMap = new Map(); // filename -> [n]
 
 /* ---------------- chat page: boot ---------------- */
@@ -257,38 +252,22 @@ const esc = (s) =>
 const CHIPS_CITED =
   "inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 ml-1 rounded-full bg-[#a8c7fa]/20 text-[#a8c7fa] hover:bg-[#a8c7fa] hover:text-[#041e49] font-mono text-[11px] font-semibold transition-all duration-150 align-baseline cursor-pointer border border-[#a8c7fa]/30";
 
-function watermarkHTML() {
-  return `
-  <div class="w-full max-w-[760px] mx-auto flex flex-col gap-5">
-    <div class="flex items-center justify-between py-1.5 px-3.5 rounded-full bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.06]">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px] text-[#a8c7fa]">security</span>
-        <span class="font-mono text-[11px] tracking-wide uppercase">Grounding session • ${esc(session.username)} • groups: ${esc(
-          session.groups.join(",") || "public"
-        )}</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="font-mono text-[11px] text-[#757b82]">Mode: ${mode === "deep" ? "Deep" : "Quick"}</span>
-        <span class="h-2 w-2 rounded-full bg-[#a8c7fa] inline-block"></span>
-      </div>
-    </div>`;
-}
-
 function renderEmpty() {
   const stream = document.getElementById("chatStream");
-  stream.innerHTML = watermarkHTML() + `
-    <div class="flex flex-col gap-3 pt-6 pb-2">
-      <span class="font-mono text-[10px] text-[#757b82] uppercase tracking-wider pl-1 font-semibold">Suggested inquiries</span>
-      <div class="flex flex-wrap gap-2">
-        ${SUGGESTIONS.map(
-          (s) => `
-        <button class="px-3.5 py-2 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] text-[#e3e3e3] text-xs text-left transition-all hover:border-[#a8c7fa]/40 flex items-center gap-1.5 border border-white/[0.08]" data-suggest="${esc(s)}" type="button">
+  stream.innerHTML = `
+    <div class="w-full max-w-[760px] mx-auto flex flex-col gap-5">
+      <div class="flex flex-col gap-3 pt-6 pb-2">
+        <span class="font-mono text-[10px] text-[#757b82] uppercase tracking-wider pl-1 font-semibold">Suggested inquiries</span>
+        <div class="flex flex-wrap gap-2">
+          ${SUGGESTIONS.map(
+            (s) => `
+        <button class="px-3.5 py-2 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] text-[#e3e3e3] text-xs text-left transition-all flex items-center gap-1.5" data-suggest="${esc(s)}" type="button">
           <span class="material-symbols-outlined text-[16px] text-[#a8c7fa]">add_circle</span>
           <span>${esc(s)}</span>
         </button>`).join("")}
+        </div>
       </div>
-    </div>
-  </div>`;
+    </div>`;
   stream.querySelectorAll("[data-suggest]").forEach((b) =>
     b.addEventListener("click", () => populatePrompt(b.dataset.suggest))
   );
@@ -362,16 +341,40 @@ function inlineCitations(html, citeList) {
     if (doc && !map.has(doc)) map.set(doc, map.size + 1);
   }
   const used = new Map(map);
-  // model writes either [name#chunk] or [doc#name#chunk]
-  const out = html.replace(/\[(?:doc#)?([^\]#<]+?)#(\d+)\]/g, (whole, doc, chunk) => {
-    if (!map.has(doc)) {
-      map.set(doc, map.size + 1);
+  // model is inconsistent: [name#chunk], [doc#name#chunk], groups [name#18, name#19],
+  // [doc#name#19, #20], full-width 【name#19】, or plain [n]
+  const out = html.replace(/[[【][^\]】<]*[\]】]/g, (whole) => {
+    const pairs = [...whole.matchAll(/(?:doc#)?([^\[\]【】\s#<,]+)#(\d+)/g)].filter(
+      (m) => m[1] !== "doc"
+    );
+    if (pairs.length) {
+      const seen = new Set();
+      let html2 = "";
+      for (const m of pairs) {
+        const doc = m[1];
+        if (seen.has(doc)) continue;
+        seen.add(doc);
+        if (!map.has(doc)) map.set(doc, map.size + 1);
+        const n = map.get(doc);
+        used.set(doc, n);
+        html2 += `<button class="${CHIPS_CITED}" data-cite="${esc(doc)}" data-chunk="${esc(
+          m[2]
+        )}" title="Source: ${esc(doc)} • chunk ${esc(m[2])}" type="button">[${n}]</button>`;
+      }
+      return html2;
     }
-    const n = map.get(doc);
-    used.set(doc, n);
-    return `<button class="${CHIPS_CITED}" data-cite="${esc(doc)}" data-chunk="${esc(
-      chunk
-    )}" title="Source: ${esc(doc)} • chunk ${esc(chunk)}" type="button">[${n}]</button>`;
+    const plain = whole.slice(1, -1);
+    if (/^\d+$/.test(plain)) {
+      const n = parseInt(plain, 10);
+      const doc = [...map.entries()].find(([, v]) => v === n)?.[0];
+      if (doc) {
+        used.set(doc, n);
+        return `<button class="${CHIPS_CITED}" data-cite="${esc(doc)}" title="Source: ${esc(
+          doc
+        )}" type="button">[${n}]</button>`;
+      }
+    }
+    return whole;
   });
   lastCiteMap = used;
   return out;
@@ -426,7 +429,7 @@ function answerHTML({ answer, citations, mode: m, cache_hit, verification, laten
         ${SUGGESTIONS.slice(0, 3)
           .map(
             (s) => `
-        <button class="px-3.5 py-2 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] text-[#e3e3e3] text-xs text-left transition-all hover:border-[#a8c7fa]/40 flex items-center gap-1.5 border border-white/[0.08]" data-suggest="${esc(s)}" type="button">
+        <button class="px-3.5 py-2 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] text-[#e3e3e3] text-xs text-left transition-all flex items-center gap-1.5" data-suggest="${esc(s)}" type="button">
           <span class="material-symbols-outlined text-[16px] text-[#a8c7fa]">add_circle</span>
           <span>${esc(s)}</span>
         </button>`).join("")}
@@ -527,12 +530,7 @@ async function triggerSend() {
   if (!document.getElementById("chatStream").dataset.live) {
     // first message of a fresh session: drop empty-state suggestions
     document.getElementById("chatStream").dataset.live = "1";
-    renderEmpty(); // rebuild: watermark only container, then append turns below it
-    const inner = document.querySelector("#chatStream > div");
-    inner.innerHTML = inner.innerHTML; // keep watermark
-    // remove suggestions block if present
-    const sugg = inner.querySelector("div.flex.flex-col.gap-3");
-    if (sugg) sugg.remove();
+    document.getElementById("chatStream").innerHTML = "";
   }
 
   composer.value = "";
@@ -609,10 +607,8 @@ function docRowHTML(d) {
   const n = entry ? entry[1] : 0;
   const size = fmtSize(d.size_bytes);
   return `
-  <article class="group relative p-3 rounded-2xl transition-all duration-200 cursor-pointer shadow-sm border ${
-    cited
-      ? "bg-[#282a2c] hover:bg-[#303236] border-white/[0.08]"
-      : "bg-[#1e1f20] hover:bg-[#282a2c] border-white/[0.05]"
+  <article class="group relative p-3 rounded-2xl transition-all duration-200 cursor-pointer shadow-sm ${
+    cited ? "bg-[#282a2c] hover:bg-[#303236]" : "bg-[#1e1f20] hover:bg-[#282a2c]"
   }" id="doc-${esc(d.filename)}" data-filename="${esc(d.filename)}" tabindex="0">
     ${cited ? `<div class="absolute left-0 top-3 bottom-3 w-1 bg-[#a8c7fa] rounded-r-full"></div>` : ""}
     <div class="flex items-start justify-between gap-2 ${cited ? "pl-1" : ""}">
@@ -685,7 +681,6 @@ function selectDoc(filename) {
   document.querySelectorAll("#srcList [data-filename]").forEach((el) => {
     const on = el === row;
     el.classList.toggle("bg-[#282a2c]", on);
-    el.classList.toggle("border-white/[0.08]", on);
   });
   const meta = docs.find((d) => citeMatches(filename, d.filename));
   if (meta)
@@ -770,8 +765,8 @@ function renderHistory(rows) {
       html += `
       <div class="group relative flex items-start gap-2.5 p-2.5 rounded-2xl cursor-pointer transition-all ${
         active
-          ? "bg-[#282a2c] text-[#e3e3e3] border border-white/[0.1] shadow-sm"
-          : "hover:bg-[#282a2c]/60 text-[#9aa0a6] hover:text-[#e3e3e3] border border-transparent"
+          ? "bg-[#282a2c] text-[#e3e3e3] shadow-sm"
+          : "hover:bg-[#282a2c]/60 text-[#9aa0a6] hover:text-[#e3e3e3]"
       }" data-conv="${r.id}" tabindex="0">
         <span class="material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${
           active ? "text-[#a8c7fa]" : "text-[#757b82] group-hover:text-[#a8c7fa]"
@@ -812,7 +807,7 @@ function loadConversation(id) {
   activeHistoryId = id;
   document.getElementById("chatStream").dataset.live = "1";
   const stream = document.getElementById("chatStream");
-  stream.innerHTML = watermarkHTML() + "</div>";
+  stream.innerHTML = "";
   stream.insertAdjacentHTML("beforeend", userTurnHTML(row.query));
   const el = appendHTML(
     answerHTML({
@@ -878,6 +873,7 @@ function wireUpload() {
   modal.addEventListener("click", (e) => {
     if (e.target === modal) closeUpload();
   });
+  document.getElementById("uploadGroups").addEventListener("change", updateGroupsSummary);
   document.getElementById("uploadConfirm").addEventListener("click", confirmUpload);
 }
 
@@ -887,10 +883,27 @@ function knownGroups() {
   return [...set];
 }
 
+function selectedUploadGroups() {
+  return [...document.querySelectorAll("#uploadGroups input:checked")].map((i) => i.value);
+}
+
+function updateGroupsSummary() {
+  const el = document.getElementById("uploadGroupsSummary");
+  if (!el) return;
+  const g = selectedUploadGroups();
+  el.textContent = g.length ? `Visible to: ${g.join(", ")}` : "No group selected — pick at least one";
+  el.style.color = g.length ? "" : "#ffb4ab";
+}
+
 function openUpload(file) {
   pendingFile = file;
   document.getElementById("uploadFileName").textContent = file.name;
-  const pre = session.groups.length ? session.groups : ["public"];
+  const pre =
+    lastUploadGroups && lastUploadGroups.length
+      ? lastUploadGroups
+      : session.groups.length
+        ? session.groups
+        : ["public"];
   document.getElementById("uploadGroups").innerHTML = knownGroups()
     .map((g) => {
       const on = pre.includes(g);
@@ -906,6 +919,7 @@ function openUpload(file) {
   const modal = document.getElementById("uploadModal");
   modal.classList.remove("hidden");
   modal.classList.add("flex");
+  updateGroupsSummary();
 }
 
 function closeUpload() {
@@ -917,7 +931,7 @@ function closeUpload() {
 
 function uploadRowHTML(id, filename) {
   return `
-  <article class="p-3 rounded-2xl bg-[#1e1f20] border border-white/[0.08] flex flex-col gap-2" id="${id}">
+  <article class="p-3 rounded-2xl bg-[#1e1f20] flex flex-col gap-2" id="${id}">
     <div class="flex items-center gap-2.5">
       <div class="p-1.5 rounded-lg bg-[#282a2c] text-[#a8c7fa]">
         <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
@@ -942,18 +956,18 @@ async function confirmUpload() {
     toast("Pick at least one access group", "err");
     return;
   }
+  lastUploadGroups = groups;
   closeUpload();
 
   const rowId = "uploading-row";
   const box = document.getElementById("srcList");
   box.insertAdjacentHTML("afterbegin", uploadRowHTML(rowId, file.name));
-  const stages = ["Uploading…", "Parsing…", "Chunking…", "Embedding…"];
-  let si = 0;
+  const t0 = Date.now();
   const stageEl = () => document.querySelector(`#${rowId} [data-stage]`);
   const timer = setInterval(() => {
-    si = (si + 1) % stages.length;
-    if (stageEl()) stageEl().textContent = stages[si];
-  }, 2500);
+    const s = Math.round((Date.now() - t0) / 1000);
+    if (stageEl()) stageEl().textContent = `Indexing… ${s}s`;
+  }, 1000);
 
   try {
     const fd = new FormData();
@@ -967,7 +981,8 @@ async function confirmUpload() {
       throw new Error(detail);
     }
     const data = await res.json();
-    toast(`${data.filename} indexed · ${data.chunks} chunks · ${data.hash}`);
+    clearInterval(timer);
+    toast(`${data.filename} indexed · ${data.chunks} chunks · ${groups.join(", ")}`);
     document.getElementById(rowId)?.remove();
     await refreshDocs();
   } catch (err) {

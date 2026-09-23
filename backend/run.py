@@ -37,9 +37,8 @@ def seed() -> None:
     con = meta_conn(settings.db_path)
     try:
         for username, password, groups in [
-            ("admin", "pass", ["hr", "eng", "public"]),
-            ("luffy", "pass", ["hr", "public"]),
-            ("zoro", "pass", ["eng", "public"]),
+            ("LUFFY", "password", ["hr", "public"]),
+            ("ZORO", "password", ["eng", "public"]),
         ]:
             try:
                 ph = ", ".join(["%s"] * 3) if type(con).__module__.startswith("psycopg") else ", ".join(["?"] * 3)

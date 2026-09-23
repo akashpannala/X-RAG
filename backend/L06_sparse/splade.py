@@ -129,6 +129,19 @@ def search(query: str, k: int = 20, groups: list[str] | None = None) -> list[dic
     return hits
 
 
+def delete(doc: str) -> None:
+    """Replace-on-reingest: drop a doc's rows from meta/vecs and re-save."""
+    global _meta, _vecs, _loaded
+    meta, vecs = _read_index()
+    keep = [i for i, m in enumerate(meta) if m["doc"] != doc]
+    if len(keep) == len(meta):
+        return
+    _meta = [meta[i] for i in keep]
+    _vecs = [vecs[i] for i in keep]
+    _loaded = True
+    _save_atomic((_meta, _vecs))
+
+
 def reset() -> None:
     global _meta, _vecs, _loaded
     _meta, _vecs = [], []

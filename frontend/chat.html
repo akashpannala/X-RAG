@@ -52,7 +52,7 @@
   <style>
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
     @keyframes xragShimmer { 0% { background-position: -500px 0; } 100% { background-position: 500px 0; } }
-    @keyframes xragFlash { 0%, 100% { border-color: rgba(168,199,250,0.08); } 40% { border-color: #a8c7fa; } }
+    @keyframes xragFlash { 0%, 100% { box-shadow: 0 0 0 0 rgba(168,199,250,0); } 40% { box-shadow: 0 0 0 2px #a8c7fa; } }
     .xrag-shimmer { background: linear-gradient(90deg, #282a2c 20%, #34363a 50%, #282a2c 80%); background-size: 600px 100%; animation: xragShimmer 1.4s linear infinite; border-radius: 9999px; }
     .xrag-flash { animation: xragFlash 0.9s ease-in-out 2; }
     .xrag-enter { animation: fadeIn 0.3s ease-out both; }
@@ -62,12 +62,10 @@
   <header class="h-14 bg-[#131314] border-b border-white/[0.06] flex items-center justify-between px-5 shrink-0 z-50">
     <div class="flex items-center gap-3">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1a446c] to-[#a8c7fa] flex items-center justify-center text-[#131314] font-bold shadow-sm">
-          <img alt="X-RAG" class="w-full h-full object-contain rounded-full" src="assets/logo-short.png"/>
-        </div>
+        <img alt="X-RAG" class="w-8 h-8 object-contain" src="assets/logo-short.png"/>
         <span class="text-base font-semibold tracking-tight text-[#e3e3e3]">X-RAG</span>
       </div>
-      <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1e1f20] border border-white/[0.08] text-[#9aa0a6]" title="API health">
+      <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1e1f20] text-[#9aa0a6]" title="API health">
         <span class="relative flex h-2 w-2" id="healthDotWrap">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8ab4f8] opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-[#8ab4f8]" id="healthDot"></span>
@@ -76,6 +74,9 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
+      <a class="p-1.5 text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#282a2c] rounded-full transition-colors" href="https://github.com/akashpannala/X-RAG" target="_blank" rel="noreferrer" title="GitHub repository" aria-label="GitHub repository">
+        <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      </a>
       <a class="p-1.5 text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#282a2c] rounded-full transition-colors" href="http://localhost:8001/docs" target="_blank" rel="noreferrer" title="API docs">
         <span class="material-symbols-outlined text-[20px]">menu_book</span>
       </a>
@@ -92,7 +93,7 @@
 
   <div class="flex-1 flex flex-row w-full overflow-hidden bg-[#131314] p-3 gap-3">
     <!-- LEFT: CHAT HISTORY -->
-    <aside class="w-72 flex flex-col h-full bg-[#1e1f20] rounded-[24px] border border-white/[0.06] select-none shrink-0 overflow-hidden shadow-xl z-20">
+    <aside class="w-72 flex flex-col h-full bg-[#1e1f20] rounded-[24px] select-none shrink-0 overflow-hidden shadow-xl z-20">
       <div class="h-14 px-4 border-b border-white/[0.06] flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-[#a8c7fa] text-[20px]">history</span>
@@ -104,7 +105,7 @@
         </button>
       </div>
       <div class="px-3.5 py-2.5 bg-[#1e1f20] shrink-0 border-b border-white/[0.04]">
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#131314] border border-white/[0.08] focus-within:border-[#a8c7fa]/60 transition-all">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all focus-within:bg-[#131314]">
           <span class="material-symbols-outlined text-[17px] text-[#9aa0a6]">search</span>
           <input class="w-full bg-transparent font-mono text-[12px] text-[#e3e3e3] placeholder:text-[#757b82] focus:outline-none" id="historySearch" placeholder="Search conversations..." type="text"/>
         </div>
@@ -118,7 +119,7 @@
       <footer class="px-4 md:px-8 py-3 shrink-0">
         <div class="w-full max-w-[760px] mx-auto flex flex-col gap-2">
           <div class="flex items-center justify-between px-1">
-            <div class="inline-flex p-0.5 rounded-full bg-[#1e1f20] border border-white/[0.06]">
+            <div class="inline-flex p-0.5 rounded-full bg-[#1e1f20]">
               <button class="px-3 py-1 rounded-full font-mono text-[11px] font-semibold bg-[#282a2c] text-[#a8c7fa] shadow-sm transition-all flex items-center gap-1" id="modeQuick" type="button">
                 <span class="material-symbols-outlined text-[13px]">bolt</span>
                 <span>Quick</span>
@@ -129,14 +130,14 @@
               </button>
             </div>
             <div class="hidden sm:flex items-center gap-1 text-[#757b82] font-mono text-[11px]">
-              <span class="px-1.5 py-0.5 rounded bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">Enter ↵</span>
+              <span class="px-1.5 py-0.5 rounded bg-[#1e1f20] text-[#9aa0a6]">Enter ↵</span>
               <span>to send</span>
               <span class="text-[#757b82]">•</span>
-              <span class="px-1.5 py-0.5 rounded bg-[#1e1f20] text-[#9aa0a6] border border-white/[0.05]">Shift+Enter</span>
+              <span class="px-1.5 py-0.5 rounded bg-[#1e1f20] text-[#9aa0a6]">Shift+Enter</span>
               <span>newline</span>
             </div>
           </div>
-          <div class="relative flex items-center w-full rounded-[28px] bg-[#1e1f20] shadow-md border border-white/[0.08] focus-within:border-[#a8c7fa]/60 focus-within:bg-[#232426] transition-all">
+          <div class="relative flex items-center w-full rounded-[28px] bg-[#1e1f20] focus-within:bg-[#232426] transition-all">
             <textarea class="w-full bg-transparent resize-none py-3.5 pl-5 pr-20 text-[14px] text-[#e3e3e3] placeholder:text-[#757b82] focus:outline-none leading-relaxed max-h-36 overflow-y-auto" id="composerInput" placeholder="Ask your sources..." rows="2"></textarea>
             <div class="absolute right-3 bottom-2.5 flex items-center gap-1.5">
               <button class="p-2 rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#282a2c] transition-colors" id="btnAttach" title="Upload a document" type="button">
@@ -147,19 +148,12 @@
               </button>
             </div>
           </div>
-          <div class="flex items-center justify-between text-[#757b82] px-2">
-            <p class="font-mono text-[11px]">X-RAG references indexed workspace sources with verified citations.</p>
-            <div class="flex items-center gap-1 font-mono text-[11px] text-[#9aa0a6]">
-              <span class="material-symbols-outlined text-[13px] text-[#a8c7fa]">lock</span>
-              <span>Workspace Private</span>
-            </div>
-          </div>
         </div>
       </footer>
     </main>
 
     <!-- RIGHT: SOURCES -->
-    <aside class="w-80 flex flex-col h-full bg-[#1e1f20] rounded-[24px] border border-white/[0.06] select-none shrink-0 overflow-hidden shadow-xl z-20">
+    <aside class="w-80 flex flex-col h-full bg-[#1e1f20] rounded-[24px] select-none shrink-0 overflow-hidden shadow-xl z-20">
       <div class="h-14 px-4 bg-[#1e1f20] border-b border-white/[0.06] flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-[#a8c7fa] text-[20px]">folder_open</span>
@@ -168,7 +162,7 @@
         </div>
       </div>
       <div class="px-3.5 py-2.5 bg-[#1e1f20] shrink-0 border-b border-white/[0.04]">
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#131314] border border-white/[0.08] focus-within:border-[#a8c7fa]/60 transition-all">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all focus-within:bg-[#131314]">
           <span class="material-symbols-outlined text-[17px] text-[#9aa0a6]">search</span>
           <input class="w-full bg-transparent font-mono text-[12px] text-[#e3e3e3] placeholder:text-[#757b82] focus:outline-none" id="srcSearch" placeholder="Filter indexed corpus..." type="text"/>
         </div>
@@ -180,7 +174,7 @@
           <span class="text-xs font-medium text-[#e3e3e3]">Drop files here to index</span>
           <span class="font-mono text-[10px] text-[#757b82]">PDF, DOCX, CSV or Markdown</span>
         </div>
-        <button class="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full bg-[#282a2c] hover:bg-[#323438] text-[#a8c7fa] border border-white/[0.08] text-xs font-semibold transition-all shadow-sm active:scale-95" id="btnAddDoc" type="button">
+        <button class="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full bg-[#282a2c] hover:bg-[#323438] text-[#a8c7fa] text-xs font-semibold transition-all shadow-sm active:scale-95" id="btnAddDoc" type="button">
           <span class="material-symbols-outlined text-[16px]">add</span>
           <span>Add Document</span>
         </button>
@@ -203,6 +197,7 @@
       <div class="flex flex-col gap-2">
         <span class="font-mono text-[10px] uppercase tracking-wider text-[#757b82] font-semibold">Access groups</span>
         <div class="flex flex-wrap gap-2" id="uploadGroups"></div>
+        <span class="text-[11px] text-[#9aa0a6]" id="uploadGroupsSummary"></span>
         <span class="text-[11px] text-[#757b82]">Only members of selected groups can retrieve this document.</span>
       </div>
       <label class="flex items-center justify-between gap-3 bg-[#131314] border border-white/[0.08] rounded-lg px-3 py-2.5 cursor-pointer">

@@ -92,6 +92,10 @@ async function main() {
   await send("Page.enable");
   await send("Runtime.enable");
   await send("DOM.enable");
+  // python http.server sends no Cache-Control — Chrome would heuristically cache
+  // app.js across runs and test stale JS. Always bypass cache in tests.
+  await send("Network.enable");
+  await send("Network.setCacheDisabled", { cacheDisabled: true });
 
   // start clean: navigate first (tab may be about:blank), then drop any token
   await send("Page.navigate", { url: BASE + "/index.html" });
@@ -102,12 +106,12 @@ async function main() {
   // ---- 1. login page ----
   await waitFor(`!!document.getElementById("loginForm")`, 15000, "login form");
   check("login page renders", true);
-  const health = await waitFor(`/(online|unreachable)/.test(document.getElementById("loginHealthText").textContent) ? document.getElementById("loginHealthText").textContent : false`, 15000, "health text");
-  check("login health ping", /online/i.test(health), health);
+  const gh = await evalJs(`document.querySelector('a[href*="github.com"]')?.href || ""`);
+  check("login github link", gh.includes("github.com/akashpannala/X-RAG"), gh);
 
-  await evalJs(`document.querySelector('[data-demo-user="luffy"]').click()`);
+  await evalJs(`document.querySelector('[data-demo-user="LUFFY"]').click()`);
   const filled = await evalJs(`document.getElementById("username").value + "/" + document.getElementById("password").value`);
-  check("demo preset fills form", filled === "luffy/pass", filled);
+  check("demo preset fills form", filled === "LUFFY/password", filled);
 
   await evalJs(`document.getElementById("loginForm").dispatchEvent(new Event("submit",{cancelable:true,bubbles:true}))`);
   await waitFor(`location.href.includes("chat.html")`, 20000, "redirect to chat");
@@ -116,11 +120,13 @@ async function main() {
   // ---- 2. chat shell ----
   await waitFor(`!!document.getElementById("chatStream") && !!document.getElementById("srcList")`, 15000, "chat shell");
   const who = await evalJs(`document.getElementById("userName").textContent`);
-  check("session header shows user", who === "luffy", who);
+  check("session header shows user", who === "LUFFY", who);
   const modeActive = await evalJs(`document.getElementById("modeQuick").className.includes("bg-[#282a2c]")`);
   check("default mode = quick (hr group)", modeActive === true);
   const hl = await waitFor(`document.getElementById("healthLabel").textContent`, 15000, "health label");
   check("chat health pill", hl.includes("healthy"), hl);
+  const ghChat = await evalJs(`[...document.querySelectorAll('a[href*="github.com"]')].length`);
+  check("chat github link", ghChat > 0, ghChat + " links");
 
   // existing docs in rail — wait until renderDocs ran (row or empty-state, not the HTML placeholder)
   await waitFor(`document.querySelector("#srcList article") || document.getElementById("srcList").textContent.includes("No sources yet") || document.getElementById("srcList").textContent.includes("No matches")`, 15000, "rail rendered");

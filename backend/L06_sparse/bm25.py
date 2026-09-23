@@ -76,6 +76,20 @@ def search(query: str, k: int = 20, groups: list[str] | None = None) -> list[dic
     return hits
 
 
+def delete(doc: str) -> None:
+    """Replace-on-reingest: drop a doc's rows and rebuild the index."""
+    global _index, _meta
+    idx, meta = _load()
+    keep = [m for m in meta if m["doc"] != doc]
+    if len(keep) == len(meta):
+        return
+    _meta = keep
+    _index = bm25s.BM25()
+    if keep:
+        _index.index(bm25s.tokenize([m["text"] for m in keep]))
+    _save()
+
+
 def reset() -> None:
     global _index, _meta
     _index, _meta = bm25s.BM25(), []
