@@ -7,7 +7,6 @@ from pathlib import Path
 import uvicorn
 
 from backend.config import check_requirements
-from backend.l17_generation.graph import get_graph
 
 
 def setup_logging() -> None:
@@ -27,35 +26,18 @@ def setup_logging() -> None:
 
 
 def seed() -> None:
-    """Demo users. Passwords are short by request — hash directly (skip validate_password)."""
-    from passlib.context import CryptContext
+    """Demo users — skip cleanly if a username is already taken."""
+    from backend.l14_security.auth import create_user
 
-    from backend.l08_freshness.store import jdump, meta_conn
-    from backend.config import settings
-
-    pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    con = meta_conn(settings.db_path)
-    try:
-        for username, password, groups in [
-            ("LUFFY", "password", ["hr", "public"]),
-            ("ZORO", "password", ["eng", "public"]),
-        ]:
-            try:
-                ph = ", ".join(["%s"] * 3) if type(con).__module__.startswith("psycopg") else ", ".join(["?"] * 3)
-                cur = con.execute(
-                    f"INSERT INTO users(username, password_hash, groups_json) VALUES ({ph}) RETURNING id",
-                    (username, pwd.hash(password), jdump(groups)),
-                )
-                con.commit()
-                print(f"created {username} {groups}")
-            except Exception as e:
-                con.rollback()
-                if type(e).__name__ == "UniqueViolation" or "unique" in str(e).lower() or "duplicate" in str(e).lower():
-                    print(f"skip: username taken: {username}")
-                else:
-                    raise
-    finally:
-        con.close()
+    for username, password, groups in [
+        ("LUFFY", "password", ["hr", "public"]),
+        ("ZORO", "password", ["eng", "public"]),
+    ]:
+        try:
+            create_user(username, password, groups, force_groups=True)
+            print(f"created {username} {groups}")
+        except ValueError as e:
+            print(f"skip: {e}")
 
 
 def main(port: int | None = None) -> None:
@@ -64,7 +46,6 @@ def main(port: int | None = None) -> None:
     setup_logging()
     if not check_requirements():
         sys.exit(1)
-    get_graph()  # compile once, fail fast on wiring errors
     host = settings.host
     use_port = int(port) if port is not None else int(settings.port)
     uvicorn.run("backend.api:app", host=host, port=use_port)

@@ -6,8 +6,6 @@ Sync invoke, cache wraps outside.
 """
 from typing import TypedDict
 
-from langgraph.graph import END, START, StateGraph
-
 from backend import l07_storage as store
 from backend.l08_freshness.store import meta_conn, jdump
 from backend.config import settings
@@ -124,9 +122,10 @@ def generate(s: RAGState) -> dict:
     text = msg.content if isinstance(msg.content, str) else str(msg.content)
     if s.get("mode") == "deep" and s.get("cites"):
         crit = llm.invoke(
-            "Review this answer against its required citation format [doc#chunk]. "
-            "If any factual sentence lacks a citation, reply REVISE: followed by "
-            "the corrected answer; else reply OK.\nAnswer:\n" + text)
+            "Review this answer against its context. Every factual sentence must cite a "
+            "source by repeating an exact tag from the context like [name#chunk]; "
+            "never [doc#N] or [doc#chunk]. If any factual sentence lacks one, reply "
+            "REVISE: followed by the corrected answer; else reply OK.\nAnswer:\n" + text)
         ctext = crit.content if isinstance(crit.content, str) else str(crit.content)
         if ctext.strip().upper().startswith("REVISE:"):
             text = ctext.strip()[len("REVISE:"):].strip() or text
@@ -142,26 +141,12 @@ def verify_step(s: RAGState) -> dict:
     return {"verification": verify(s.get("answer", ""), s.get("contexts", []))}
 
 
-_graph = None
-
-
-def get_graph():
-    global _graph
-    if _graph is None:
-        g = StateGraph(RAGState)
-        g.add_node("guard", guard)
-        g.add_node("transform", transform)
-        g.add_node("retrieve", retrieve)
-        g.add_node("rerank", rerank_step)
-        g.add_node("assemble", assemble_step)
-        g.add_node("generate", generate)
-        g.add_node("verify", verify_step)
-        for a, b in [(START, "guard"), ("guard", "transform"), ("transform", "retrieve"),
-                     ("retrieve", "rerank"), ("rerank", "assemble"),
-                     ("assemble", "generate"), ("generate", "verify"), ("verify", END)]:
-            g.add_edge(a, b)
-        _graph = g.compile()
-    return _graph
+def _invoke(state: dict) -> dict:
+    """Linear pipeline: every step sees the merged state so far (was a langgraph StateGraph)."""
+    s = dict(state)
+    for step in (guard, transform, retrieve, rerank_step, assemble_step, generate, verify_step):
+        s.update(step(s))
+    return s
 
 
 def answer(query: str, top_k: int = 5, groups: list[str] | None = None,
@@ -179,10 +164,7 @@ def answer(query: str, top_k: int = 5, groups: list[str] | None = None,
         return hit[0], hit[1], [], mode, True, {"labels": [], "supported_ratio": -1.0}
     state = {"query": query, "top_k": top_k, "groups": groups,
              "mode_override": mode_override, "user_id": user_id}
-    try:
-        out = get_graph().invoke(state)
-    except Exception:
-        out = get_graph().invoke(state)
+    out = _invoke(state)
     if (out.get("blocked", "").startswith("low retrieval confidence")
             and mode == "deep" and not _retried):
         retry_q = step_back(query)

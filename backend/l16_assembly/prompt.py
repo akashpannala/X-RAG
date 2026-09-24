@@ -23,5 +23,6 @@ def assemble(query: str, hits: list[dict]) -> tuple[str, list[str]]:
         if tag not in cites:
             cites.append(tag)
     context = "".join(parts) if parts else "(no retrieved context)"
-    return (f"Answer ONLY from the context below. Cite every fact as [doc#chunk].\n"
+    return (f"Answer ONLY from the context below. Cite every fact by repeating the exact "
+            f"source tag from the context (e.g. [Some Name#12]) — never write [doc#N] or [doc#chunk].\n"
             f"Context:\n{context}\nQuestion: {query}\nAnswer:"), cites

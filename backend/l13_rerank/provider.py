@@ -1,18 +1,11 @@
 """Reranker provider abstraction: Jina API → Local BGE-reranker → Local MiniLM."""
 import logging
-from abc import ABC, abstractmethod
 from typing import List, Tuple
 
 _logger = logging.getLogger(__name__)
 
 
-class RerankerProvider(ABC):
-    @abstractmethod
-    def rerank(self, query: str, docs: List[str], top_n: int) -> List[Tuple[int, float]]:
-        """Returns [(doc_index, score), ...] sorted by relevance desc."""
-
-
-class JinaReranker(RerankerProvider):
+class JinaReranker:
     """Jina Reranker API v1 (/v1/rerank)."""
 
     def __init__(self, base_url: str, model: str, api_key: str):
@@ -46,7 +39,7 @@ class JinaReranker(RerankerProvider):
             raise
 
 
-class LocalCrossEncoder(RerankerProvider):
+class LocalCrossEncoder:
     """Local sentence-transformers CrossEncoder (BGE-reranker or MiniLM)."""
 
     def __init__(self, model_name: str):
@@ -67,7 +60,7 @@ class LocalCrossEncoder(RerankerProvider):
         return ranked[:top_n]
 
 
-def get_reranker_provider() -> RerankerProvider:
+def get_reranker_provider():
     """Factory with fallback chain: Jina API → Local BGE-reranker → Local MiniLM."""
     from backend.config import settings
 

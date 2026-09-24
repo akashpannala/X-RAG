@@ -5,3 +5,680 @@
 2026-09-27 17:24:13,457 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
 2026-09-27 17:24:14,481 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
 2026-09-27 17:24:15,506 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:46:06,386 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:46:07,307 INFO httpx HTTP Request: POST https://api.jina.ai/v1/rerank "HTTP/1.1 200 OK"
+2026-09-27 18:47:14,416 ERROR docling.datamodel.stage_model_specs Preset 'granite_vision_v4' already registered for ChartExtractionVlmEngineOptions
+2026-09-27 18:47:15,008 INFO docling.datamodel.document detected formats: [<InputFormat.MD: 'md'>]
+2026-09-27 18:47:15,008 INFO docling.document_converter Going to convert document batch...
+2026-09-27 18:47:15,008 INFO docling.document_converter Initializing pipeline for SimplePipeline with options hash 75edab3ad673fed4084458f2e46c3218
+2026-09-27 18:47:15,012 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-27 18:47:15,013 INFO docling.models.factories Registered picture descriptions: ['picture_description_vlm_engine', 'vlm', 'api']
+2026-09-27 18:47:15,014 INFO docling.pipeline.base_pipeline Processing document vacation_e2e_mujuewm8.md
+2026-09-27 18:47:15,016 INFO docling.document_converter Finished converting document vacation_e2e_mujuewm8.md in 0.01 sec.
+2026-09-27 18:47:15,031 INFO presidio-analyzer Using device of type: cpu
+2026-09-27 18:47:15,349 INFO presidio-analyzer nlp_engine not provided, creating default.
+2026-09-27 18:47:16,242 INFO presidio-analyzer Created NLP engine: spacy. Loaded models: ['en']
+2026-09-27 18:47:16,242 INFO presidio-analyzer registry not provided, creating default.
+2026-09-27 18:47:16,260 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 18:47:16,260 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 18:47:16,260 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 18:47:16,260 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 18:47:16,260 INFO presidio-analyzer Loaded recognizer: UsBankRecognizer
+2026-09-27 18:47:16,260 INFO presidio-analyzer Loaded recognizer: UsLicenseRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: UsItinRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: UsPassportRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: UsSsnRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: NhsRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: EsNifRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: EsNieRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: ItDriverLicenseRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: ItFiscalCodeRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: ItVatCodeRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: ItIdentityCardRecognizer
+2026-09-27 18:47:16,261 INFO presidio-analyzer Loaded recognizer: ItPassportRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: PlPeselRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: CryptoRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: DateRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: EmailRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: IbanRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: IpRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: MedicalLicenseRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: MacAddressRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: PhoneRecognizer
+2026-09-27 18:47:16,262 INFO presidio-analyzer Loaded recognizer: UrlRecognizer
+2026-09-27 18:47:16,262 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: es, registry supported languages: en
+2026-09-27 18:47:16,262 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: it, registry supported languages: en
+2026-09-27 18:47:16,262 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: pl, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNifRecognizer supported languages: es, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNieRecognizer supported languages: es, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItDriverLicenseRecognizer supported languages: it, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItFiscalCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItVatCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItIdentityCardRecognizer supported languages: it, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItPassportRecognizer supported languages: it, registry supported languages: en
+2026-09-27 18:47:16,263 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - PlPeselRecognizer supported languages: pl, registry supported languages: en
+2026-09-27 18:47:16,263 INFO presidio-analyzer Loaded recognizer: SpacyRecognizer
+2026-09-27 18:47:16,263 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 18:47:17,449 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:18,291 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:19,635 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:20,316 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:21,137 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:22,057 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:23,239 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:24,003 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:24,411 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:25,070 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:47:30,862 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:32,092 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:39,977 DEBUG bm25s Building index from IDs objects
+2026-09-27 18:47:40,488 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:47:40,650 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Fconfig.json=&etag=%22a2a1a1f5ca7866152b7da52ba160605d4e519ce4%22 "HTTP/1.1 200 OK"
+2026-09-27 18:47:41,000 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:47:41,000 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-09-27 18:47:41,084 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/tokenizer_config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2233e298a7a6d1be145f9ce4c9c70b9b8abda768bd%22 "HTTP/1.1 200 OK"
+2026-09-27 18:47:41,410 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-27 18:47:41,680 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-27 18:47:42,024 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:47:42,077 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Fconfig.json=&etag=%22a2a1a1f5ca7866152b7da52ba160605d4e519ce4%22 "HTTP/1.1 200 OK"
+2026-09-27 18:47:42,433 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-09-27 18:47:42,717 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil "HTTP/1.1 200 OK"
+2026-09-27 18:47:43,048 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/commits/main "HTTP/1.1 200 OK"
+2026-09-27 18:47:43,356 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/discussions?p=0 "HTTP/1.1 200 OK"
+2026-09-27 18:47:43,648 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/commits/refs%2Fpr%2F3 "HTTP/1.1 200 OK"
+2026-09-27 18:47:43,970 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/refs%2Fpr%2F3/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-09-27 18:47:44,277 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/refs%2Fpr%2F3/model.safetensors "HTTP/1.1 302 Found"
+2026-09-27 18:47:44,800 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 18:47:46,016 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 18:47:53,492 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:54,311 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:55,233 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:56,176 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:47:57,658 INFO sentence_transformers.base.model No device provided, using cpu
+2026-09-27 18:47:57,997 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:47:58,408 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-09-27 18:47:58,408 INFO sentence_transformers.base.model No modules.json found for cross-encoder/ms-marco-MiniLM-L-6-v2, initializing a new CrossEncoder model.
+2026-09-27 18:47:58,673 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2 "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:47:59,022 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+2026-09-27 18:47:59,269 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:47:59,533 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:47:59,584 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 18:47:59,842 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/adapter_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:00,085 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 18:48:00,342 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:00,583 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:00,624 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 18:48:00,950 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:01,274 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 18:48:01,521 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:01,768 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 18:48:02,093 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:02,401 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 18:48:02,669 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:02,931 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 18:48:03,263 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:03,629 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:03,679 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/tokenizer_config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22a2435fedfac32b9ad70f052d4f84007730cd3109%22 "HTTP/1.1 200 OK"
+2026-09-27 18:48:04,040 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:04,346 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:04,385 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 18:48:04,660 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:04,961 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:05,008 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 18:48:05,267 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:05,522 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:05,559 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/tokenizer_config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22a2435fedfac32b9ad70f052d4f84007730cd3109%22 "HTTP/1.1 200 OK"
+2026-09-27 18:48:05,834 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:06,096 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-27 18:48:06,395 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 18:48:06,659 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-27 18:48:08,033 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:48,669 INFO docling.datamodel.document detected formats: [<InputFormat.MD: 'md'>]
+2026-09-27 18:49:48,669 INFO docling.document_converter Going to convert document batch...
+2026-09-27 18:49:48,669 INFO docling.document_converter Initializing pipeline for SimplePipeline with options hash 75edab3ad673fed4084458f2e46c3218
+2026-09-27 18:49:48,670 INFO docling.pipeline.base_pipeline Processing document vacation_e2e_mujuiaq0.md
+2026-09-27 18:49:48,672 INFO docling.document_converter Finished converting document vacation_e2e_mujuiaq0.md in 0.00 sec.
+2026-09-27 18:49:48,673 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 18:49:49,713 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:49:50,635 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:49:51,721 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:52,477 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:53,195 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:53,851 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:54,783 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:56,061 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:56,724 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:57,393 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:58,006 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:49:59,953 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:50:01,080 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:50:10,192 DEBUG bm25s Building index from IDs objects
+2026-09-27 18:50:12,984 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 18:50:13,801 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 18:50:21,967 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:50:22,841 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:50:26,268 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 18:51:37,864 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:51:38,765 INFO httpx HTTP Request: POST https://api.jina.ai/v1/rerank "HTTP/1.1 200 OK"
+2026-09-27 18:55:54,934 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 18:55:55,781 INFO httpx HTTP Request: POST https://api.jina.ai/v1/rerank "HTTP/1.1 200 OK"
+2026-09-27 18:58:15,583 ERROR docling.datamodel.stage_model_specs Preset 'granite_vision_v4' already registered for ChartExtractionVlmEngineOptions
+2026-09-27 18:58:16,279 INFO docling.datamodel.document detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-09-27 18:58:16,341 INFO docling.document_converter Going to convert document batch...
+2026-09-27 18:58:16,341 INFO docling.document_converter Initializing pipeline for StandardPdfPipeline with options hash 7b7c8bd9e5a5c6fc44c88f5c6e6b8921
+2026-09-27 18:58:16,346 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-27 18:58:16,347 INFO docling.models.factories Registered picture descriptions: ['picture_description_vlm_engine', 'vlm', 'api']
+2026-09-27 18:58:16,351 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-27 18:58:16,359 INFO docling.models.factories Registered ocr engines: ['auto', 'easyocr', 'kserve_v2_ocr', 'nemotron-ocr', 'ocrmac', 'rapidocr', 'tesserocr', 'tesseract']
+2026-09-27 18:58:16,360 INFO docling.models.stages.ocr.auto_ocr_model Nemotron cannot be used because it is not installed.
+2026-09-27 18:58:16,513 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 18:58:16,694 INFO docling.models.stages.ocr.auto_ocr_model Auto OCR model selected rapidocr with onnxruntime.
+2026-09-27 18:58:16,699 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-27 18:58:16,702 INFO docling.models.factories Registered layout engines: ['layout_object_detection', 'docling_layout_default', 'docling_experimental_table_crops_layout']
+2026-09-27 18:58:16,703 INFO docling.models.inference_engines.object_detection.transformers_engine Initializing Transformers object-detection engine
+2026-09-27 18:58:16,703 INFO docling.models.inference_engines.common.hf_vision_base Downloading object-detection model from HuggingFace: docling-project/docling-layout-heron@main
+2026-09-27 18:58:16,704 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-layout-heron (revision: main)...
+2026-09-27 18:58:17,118 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-layout-heron/revision/main "HTTP/1.1 200 OK"
+2026-09-27 18:58:17,131 INFO docling.models.utils.hf_model_download Model docling-project/docling-layout-heron already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-layout-heron/snapshots/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8
+2026-09-27 18:58:17,131 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 18:58:17,411 INFO docling.models.inference_engines.object_detection.transformers_engine Transformers engine ready (device=cpu, dtype=torch.float32)
+2026-09-27 18:58:17,415 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-27 18:58:17,417 INFO docling.models.factories Registered table structure engines: ['docling_tableformer', 'docling_tableformer_v2', 'granite_vision_table']
+2026-09-27 18:58:17,417 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-models (revision: v2.3.0)...
+2026-09-27 18:58:17,805 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-models/revision/v2.3.0 "HTTP/1.1 200 OK"
+2026-09-27 18:58:17,811 INFO docling.models.utils.hf_model_download Model docling-project/docling-models already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-models/snapshots/fc0f2d45e2218ea24bce5045f58a389aed16dc23
+2026-09-27 18:58:17,819 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 18:58:18,137 INFO docling.pipeline.base_pipeline Processing document The_Last_AI_Built_by_Humans_Toward_Genuine_Recursi.pdf
+2026-09-27 19:03:20,824 INFO docling.document_converter Finished converting document The_Last_AI_Built_by_Humans_Toward_Genuine_Recursi.pdf in 304.55 sec.
+2026-09-27 19:03:20,974 INFO presidio-analyzer Using device of type: cpu
+2026-09-27 19:03:21,425 INFO presidio-analyzer nlp_engine not provided, creating default.
+2026-09-27 19:03:22,513 INFO presidio-analyzer Created NLP engine: spacy. Loaded models: ['en']
+2026-09-27 19:03:22,513 INFO presidio-analyzer registry not provided, creating default.
+2026-09-27 19:03:22,532 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 19:03:22,532 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 19:03:22,532 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 19:03:22,532 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: UsBankRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: UsLicenseRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: UsItinRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: UsPassportRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: UsSsnRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: NhsRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: EsNifRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: EsNieRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: ItDriverLicenseRecognizer
+2026-09-27 19:03:22,533 INFO presidio-analyzer Loaded recognizer: ItFiscalCodeRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: ItVatCodeRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: ItIdentityCardRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: ItPassportRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: PlPeselRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: CryptoRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: DateRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: EmailRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: IbanRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: IpRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: MedicalLicenseRecognizer
+2026-09-27 19:03:22,534 INFO presidio-analyzer Loaded recognizer: MacAddressRecognizer
+2026-09-27 19:03:22,535 INFO presidio-analyzer Loaded recognizer: PhoneRecognizer
+2026-09-27 19:03:22,535 INFO presidio-analyzer Loaded recognizer: UrlRecognizer
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: es, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: it, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: pl, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNifRecognizer supported languages: es, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNieRecognizer supported languages: es, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItDriverLicenseRecognizer supported languages: it, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItFiscalCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItVatCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItIdentityCardRecognizer supported languages: it, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItPassportRecognizer supported languages: it, registry supported languages: en
+2026-09-27 19:03:22,535 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - PlPeselRecognizer supported languages: pl, registry supported languages: en
+2026-09-27 19:03:22,535 INFO presidio-analyzer Loaded recognizer: SpacyRecognizer
+2026-09-27 19:03:22,535 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 19:03:36,305 INFO backend.l04_chunking.full late_chunks: remote embed, skipping token-pool, plain split
+2026-09-27 19:03:37,288 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:03:38,818 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:03:39,473 WARNING backend.l04_chunking.full propositional_chunks capped at 20/353 blocks — long doc loses coverage
+2026-09-27 19:03:41,612 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:03:42,674 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:03:44,552 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:03:46,599 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:03:48,545 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:03:50,150 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:03:50,248 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:03:50,249 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 13.000000 seconds
+2026-09-27 19:04:04,826 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:04:05,030 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:04:05,031 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 6.000000 seconds
+2026-09-27 19:04:12,608 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:04:12,688 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:04:12,688 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 6.000000 seconds
+2026-09-27 19:04:20,204 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:04:20,315 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:04:20,315 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 9.000000 seconds
+2026-09-27 19:04:32,064 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:04:32,167 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:04:32,167 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 11.000000 seconds
+2026-09-27 19:04:43,412 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:04:43,413 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 1.000000 seconds
+2026-09-27 19:04:45,785 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:04:45,895 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:04:45,895 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 9.000000 seconds
+2026-09-27 19:04:56,251 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:04:56,344 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:04:56,344 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 7.000000 seconds
+2026-09-27 19:05:05,547 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:05:05,711 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:05:05,711 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 11.000000 seconds
+2026-09-27 19:05:19,159 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:05:19,323 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:05:19,323 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 10.000000 seconds
+2026-09-27 19:05:29,834 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:05:29,834 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 6.000000 seconds
+2026-09-27 19:05:38,622 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:05:38,783 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:05:38,783 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 6.000000 seconds
+2026-09-27 19:05:47,427 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:05:47,599 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:05:47,599 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 12.000000 seconds
+2026-09-27 19:06:01,865 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:06:01,988 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:01,988 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 11.000000 seconds
+2026-09-27 19:06:13,410 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:13,410 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 4.000000 seconds
+2026-09-27 19:06:17,506 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:17,506 WARNING xrag.ingest full_chunk failed (Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01knwp5djsfnyrvbrtysn81ra5` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5779, Requested 2414. Please try again in 1.4475s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}) — falling back to basic chunking
+2026-09-27 19:06:17,623 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:17,623 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 5.000000 seconds
+2026-09-27 19:06:23,676 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:06:23,793 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:23,793 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 10.000000 seconds
+2026-09-27 19:06:35,144 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:06:35,337 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:35,337 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 10.000000 seconds
+2026-09-27 19:06:46,340 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:06:46,496 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:46,496 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 4.000000 seconds
+2026-09-27 19:06:51,424 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:06:51,540 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:06:51,541 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 9.000000 seconds
+2026-09-27 19:07:00,826 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:07:00,826 INFO groq._base_client Retrying request to /openai/v1/chat/completions in 3.000000 seconds
+2026-09-27 19:07:03,954 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-09-27 19:07:03,955 WARNING xrag.ingest raptor/hypothetical enrichment skipped: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01knwp5djsfnyrvbrtysn81ra5` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5083, Requested 3081. Please try again in 1.23s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-09-27 19:07:10,778 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:07:16,922 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:09:03,531 DEBUG bm25s Building index from IDs objects
+2026-09-27 19:09:04,028 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:09:04,079 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Fconfig.json=&etag=%22a2a1a1f5ca7866152b7da52ba160605d4e519ce4%22 "HTTP/1.1 200 OK"
+2026-09-27 19:09:04,339 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:09:04,339 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-09-27 19:09:04,405 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/tokenizer_config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2233e298a7a6d1be145f9ce4c9c70b9b8abda768bd%22 "HTTP/1.1 200 OK"
+2026-09-27 19:09:04,745 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-27 19:09:05,053 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-27 19:09:05,341 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:09:05,667 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Fconfig.json=&etag=%22a2a1a1f5ca7866152b7da52ba160605d4e519ce4%22 "HTTP/1.1 200 OK"
+2026-09-27 19:09:06,076 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-09-27 19:09:06,320 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil "HTTP/1.1 200 OK"
+2026-09-27 19:09:06,589 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/commits/main "HTTP/1.1 200 OK"
+2026-09-27 19:09:06,896 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/discussions?p=0 "HTTP/1.1 200 OK"
+2026-09-27 19:09:07,204 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/commits/refs%2Fpr%2F3 "HTTP/1.1 200 OK"
+2026-09-27 19:09:07,510 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/refs%2Fpr%2F3/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:09:07,920 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/refs%2Fpr%2F3/model.safetensors "HTTP/1.1 302 Found"
+2026-09-27 19:12:06,748 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 19:12:08,245 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 19:13:49,171 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:13:50,090 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:13:51,217 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:13:52,065 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:13:53,675 INFO sentence_transformers.base.model No device provided, using cpu
+2026-09-27 19:13:54,074 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:54,326 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:13:54,330 INFO sentence_transformers.base.model No modules.json found for cross-encoder/ms-marco-MiniLM-L-6-v2, initializing a new CrossEncoder model.
+2026-09-27 19:13:54,576 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2 "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:54,904 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+2026-09-27 19:13:55,173 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:55,414 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:55,474 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 19:13:55,748 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/adapter_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:55,995 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:13:56,238 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:56,498 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:56,559 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 19:13:56,923 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:57,184 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:13:57,446 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:57,693 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:13:57,949 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:58,192 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:13:58,451 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:58,706 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:13:58,957 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:59,211 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:59,250 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/tokenizer_config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22a2435fedfac32b9ad70f052d4f84007730cd3109%22 "HTTP/1.1 200 OK"
+2026-09-27 19:13:59,508 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:59,807 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:13:59,849 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 19:14:00,104 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:14:00,374 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:14:00,415 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 19:14:00,666 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:14:00,920 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:14:00,962 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/tokenizer_config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22a2435fedfac32b9ad70f052d4f84007730cd3109%22 "HTTP/1.1 200 OK"
+2026-09-27 19:14:01,208 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:14:01,450 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-27 19:14:01,704 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:14:02,019 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-27 19:14:05,355 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:18:40,646 INFO docling.datamodel.document detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-09-27 19:18:40,690 INFO docling.document_converter Going to convert document batch...
+2026-09-27 19:18:40,691 INFO docling.document_converter Initializing pipeline for StandardPdfPipeline with options hash 7b7c8bd9e5a5c6fc44c88f5c6e6b8921
+2026-09-27 19:18:40,691 INFO docling.models.stages.ocr.auto_ocr_model Nemotron cannot be used because it is not installed.
+2026-09-27 19:18:40,691 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 19:18:40,918 INFO docling.models.stages.ocr.auto_ocr_model Auto OCR model selected rapidocr with onnxruntime.
+2026-09-27 19:18:40,918 INFO docling.models.inference_engines.object_detection.transformers_engine Initializing Transformers object-detection engine
+2026-09-27 19:18:40,919 INFO docling.models.inference_engines.common.hf_vision_base Downloading object-detection model from HuggingFace: docling-project/docling-layout-heron@main
+2026-09-27 19:18:40,919 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-layout-heron (revision: main)...
+2026-09-27 19:18:41,328 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-layout-heron/revision/main "HTTP/1.1 200 OK"
+2026-09-27 19:18:41,334 INFO docling.models.utils.hf_model_download Model docling-project/docling-layout-heron already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-layout-heron/snapshots/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8
+2026-09-27 19:18:41,334 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 19:18:41,613 INFO docling.models.inference_engines.object_detection.transformers_engine Transformers engine ready (device=cpu, dtype=torch.float32)
+2026-09-27 19:18:41,614 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-models (revision: v2.3.0)...
+2026-09-27 19:18:41,881 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-models/revision/v2.3.0 "HTTP/1.1 200 OK"
+2026-09-27 19:18:41,897 INFO docling.models.utils.hf_model_download Model docling-project/docling-models already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-models/snapshots/fc0f2d45e2218ea24bce5045f58a389aed16dc23
+2026-09-27 19:18:41,897 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 19:18:42,211 INFO docling.pipeline.base_pipeline Processing document Free Journals.pdf
+2026-09-27 19:18:46,914 INFO docling.document_converter Finished converting document Free Journals.pdf in 6.27 sec.
+2026-09-27 19:18:46,946 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 19:18:49,312 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:18:50,206 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:18:51,635 DEBUG bm25s Building index from IDs objects
+2026-09-27 19:18:52,533 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 19:18:53,561 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 19:23:55,178 INFO docling.datamodel.document detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-09-27 19:23:55,185 INFO docling.document_converter Going to convert document batch...
+2026-09-27 19:23:55,186 INFO docling.document_converter Initializing pipeline for StandardPdfPipeline with options hash 7b7c8bd9e5a5c6fc44c88f5c6e6b8921
+2026-09-27 19:23:55,186 INFO docling.models.stages.ocr.auto_ocr_model Nemotron cannot be used because it is not installed.
+2026-09-27 19:23:55,186 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 19:23:55,329 INFO docling.models.stages.ocr.auto_ocr_model Auto OCR model selected rapidocr with onnxruntime.
+2026-09-27 19:23:55,329 INFO docling.models.inference_engines.object_detection.transformers_engine Initializing Transformers object-detection engine
+2026-09-27 19:23:55,329 INFO docling.models.inference_engines.common.hf_vision_base Downloading object-detection model from HuggingFace: docling-project/docling-layout-heron@main
+2026-09-27 19:23:55,329 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-layout-heron (revision: main)...
+2026-09-27 19:23:56,006 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-layout-heron/revision/main "HTTP/1.1 200 OK"
+2026-09-27 19:23:56,012 INFO docling.models.utils.hf_model_download Model docling-project/docling-layout-heron already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-layout-heron/snapshots/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8
+2026-09-27 19:23:56,012 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 19:23:56,199 INFO docling.models.inference_engines.object_detection.transformers_engine Transformers engine ready (device=cpu, dtype=torch.float32)
+2026-09-27 19:23:56,199 INFO docling.models.utils.hf_model_download Fetching model docling-project/docling-models (revision: v2.3.0)...
+2026-09-27 19:23:56,518 INFO httpx HTTP Request: GET https://huggingface.co/api/models/docling-project/docling-models/revision/v2.3.0 "HTTP/1.1 200 OK"
+2026-09-27 19:23:56,522 INFO docling.models.utils.hf_model_download Model docling-project/docling-models already cached at /home/zoro/.cache/huggingface/hub/models--docling-project--docling-models/snapshots/fc0f2d45e2218ea24bce5045f58a389aed16dc23
+2026-09-27 19:23:56,523 INFO docling.utils.accelerator_utils Accelerator device: 'cpu'
+2026-09-27 19:23:56,739 INFO docling.pipeline.base_pipeline Processing document Free Journals.pdf
+2026-09-27 19:24:00,592 INFO docling.document_converter Finished converting document Free Journals.pdf in 5.41 sec.
+2026-09-27 19:24:00,613 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 19:24:02,471 DEBUG bm25s Building index from IDs objects
+2026-09-27 19:24:03,547 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:24:04,642 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:24:06,130 DEBUG bm25s Building index from IDs objects
+2026-09-27 19:24:07,067 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 19:24:08,250 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 19:26:49,370 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:26:50,394 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:26:51,321 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:26:52,135 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:28,681 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:29,638 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:32,076 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:27:32,796 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:27:33,708 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:27:34,184 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:27:35,146 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:36,170 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:38,729 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:39,708 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:42,072 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:42,923 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:45,078 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:45,904 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:48,253 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:49,213 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:51,712 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:52,656 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:55,121 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:55,953 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:58,186 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:27:59,025 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:01,261 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:02,386 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:04,770 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:05,559 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:07,710 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:08,720 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:11,230 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:12,216 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:14,941 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:15,917 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:24,197 INFO httpx HTTP Request: POST https://api.jina.ai/v1/rerank "HTTP/1.1 200 OK"
+2026-09-27 19:28:25,731 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:28:26,655 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:27,555 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:28,499 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:29,318 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:28:30,239 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:28:31,468 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:28:31,473 INFO sentence_transformers.base.model No device provided, using cpu
+2026-09-27 19:28:31,879 INFO httpx HTTP Request: HEAD https://huggingface.co/vectara/hallucination_evaluation_model/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-09-27 19:28:31,883 INFO sentence_transformers.base.model No modules.json found for vectara/hallucination_evaluation_model, initializing a new CrossEncoder model.
+2026-09-27 19:28:32,187 INFO httpx HTTP Request: GET https://huggingface.co/api/models/vectara/hallucination_evaluation_model "HTTP/1.1 200 OK"
+2026-09-27 19:28:32,493 INFO httpx HTTP Request: HEAD https://huggingface.co/vectara/hallucination_evaluation_model/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 19:28:32,545 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/vectara/hallucination_evaluation_model/8e4a2e6e96c708cc76c2344f7e4757df2515292c/config.json?%2Fvectara%2Fhallucination_evaluation_model%2Fresolve%2Fmain%2Fconfig.json=&etag=%224c9062d21243372ae3f9348dd1b72b3b7bb9b62f%22 "HTTP/1.1 200 OK"
+2026-09-27 19:28:33,311 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:30:39,677 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:30:40,429 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:30:41,349 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:30:42,144 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:30:46,645 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 19:36:26,922 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:36:27,843 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:36:28,765 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 19:36:29,687 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:08:17,723 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:08:18,644 INFO httpx HTTP Request: POST https://api.jina.ai/v1/rerank "HTTP/1.1 200 OK"
+2026-09-27 20:08:40,443 ERROR docling.datamodel.stage_model_specs Preset 'granite_vision_v4' already registered for ChartExtractionVlmEngineOptions
+2026-09-27 20:08:41,036 INFO docling.datamodel.document detected formats: [<InputFormat.MD: 'md'>]
+2026-09-27 20:08:41,036 INFO docling.document_converter Going to convert document batch...
+2026-09-27 20:08:41,037 INFO docling.document_converter Initializing pipeline for SimplePipeline with options hash e31558024d4d8dcdceced9016895293b
+2026-09-27 20:08:41,040 INFO docling.models.factories.base_factory Loading plugin 'docling_defaults'
+2026-09-27 20:08:41,041 INFO docling.models.factories Registered picture descriptions: ['picture_description_vlm_engine', 'vlm', 'api']
+2026-09-27 20:08:41,042 INFO docling.pipeline.base_pipeline Processing document vacation_e2e_mujxbnwq.md
+2026-09-27 20:08:41,044 INFO docling.document_converter Finished converting document vacation_e2e_mujxbnwq.md in 0.01 sec.
+2026-09-27 20:08:41,059 INFO presidio-analyzer Using device of type: cpu
+2026-09-27 20:08:41,358 INFO presidio-analyzer nlp_engine not provided, creating default.
+2026-09-27 20:08:42,229 INFO presidio-analyzer Created NLP engine: spacy. Loaded models: ['en']
+2026-09-27 20:08:42,229 INFO presidio-analyzer registry not provided, creating default.
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: CreditCardRecognizer
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: UsBankRecognizer
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: UsLicenseRecognizer
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: UsItinRecognizer
+2026-09-27 20:08:42,247 INFO presidio-analyzer Loaded recognizer: UsPassportRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: UsSsnRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: NhsRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: EsNifRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: EsNieRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: ItDriverLicenseRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: ItFiscalCodeRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: ItVatCodeRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: ItIdentityCardRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: ItPassportRecognizer
+2026-09-27 20:08:42,248 INFO presidio-analyzer Loaded recognizer: PlPeselRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: CryptoRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: DateRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: EmailRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: IbanRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: IpRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: MedicalLicenseRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: MacAddressRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: PhoneRecognizer
+2026-09-27 20:08:42,249 INFO presidio-analyzer Loaded recognizer: UrlRecognizer
+2026-09-27 20:08:42,249 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: es, registry supported languages: en
+2026-09-27 20:08:42,249 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: it, registry supported languages: en
+2026-09-27 20:08:42,249 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - CreditCardRecognizer supported languages: pl, registry supported languages: en
+2026-09-27 20:08:42,249 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNifRecognizer supported languages: es, registry supported languages: en
+2026-09-27 20:08:42,250 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - EsNieRecognizer supported languages: es, registry supported languages: en
+2026-09-27 20:08:42,250 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItDriverLicenseRecognizer supported languages: it, registry supported languages: en
+2026-09-27 20:08:42,250 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItFiscalCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-27 20:08:42,250 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItVatCodeRecognizer supported languages: it, registry supported languages: en
+2026-09-27 20:08:42,250 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItIdentityCardRecognizer supported languages: it, registry supported languages: en
+2026-09-27 20:08:42,250 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - ItPassportRecognizer supported languages: it, registry supported languages: en
+2026-09-27 20:08:42,250 WARNING presidio-analyzer Recognizer not added to registry because language is not supported by registry - PlPeselRecognizer supported languages: pl, registry supported languages: en
+2026-09-27 20:08:42,250 INFO presidio-analyzer Loaded recognizer: SpacyRecognizer
+2026-09-27 20:08:42,250 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 20:08:44,858 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:08:45,736 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:08:46,906 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:47,724 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:48,748 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:49,568 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:50,389 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:51,206 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:52,231 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:52,969 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:08:59,296 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:09:00,347 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:09:08,834 DEBUG bm25s Building index from IDs objects
+2026-09-27 20:09:09,331 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:09,331 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-09-27 20:09:09,371 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Fconfig.json=&etag=%22a2a1a1f5ca7866152b7da52ba160605d4e519ce4%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:09,741 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:09,791 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/tokenizer_config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2233e298a7a6d1be145f9ce4c9c70b9b8abda768bd%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:10,038 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:10,356 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-27 20:09:10,662 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:10,730 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/naver/splade-cocondenser-selfdistil/31f3eb4b5aae648cde974db3b7b44bf2d095106b/config.json?%2Fnaver%2Fsplade-cocondenser-selfdistil%2Fresolve%2Fmain%2Fconfig.json=&etag=%22a2a1a1f5ca7866152b7da52ba160605d4e519ce4%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:11,040 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:11,379 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil "HTTP/1.1 200 OK"
+2026-09-27 20:09:11,686 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/commits/main "HTTP/1.1 200 OK"
+2026-09-27 20:09:11,976 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/discussions?p=0 "HTTP/1.1 200 OK"
+2026-09-27 20:09:12,300 INFO httpx HTTP Request: GET https://huggingface.co/api/models/naver/splade-cocondenser-selfdistil/commits/refs%2Fpr%2F3 "HTTP/1.1 200 OK"
+2026-09-27 20:09:12,607 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/refs%2Fpr%2F3/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:12,915 INFO httpx HTTP Request: HEAD https://huggingface.co/naver/splade-cocondenser-selfdistil/resolve/refs%2Fpr%2F3/model.safetensors "HTTP/1.1 302 Found"
+2026-09-27 20:09:13,771 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 20:09:14,593 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 20:09:23,141 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:09:24,162 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:09:25,121 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:09:26,224 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:09:28,042 INFO sentence_transformers.base.model No device provided, using cpu
+2026-09-27 20:09:28,479 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:28,748 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:28,751 INFO sentence_transformers.base.model No modules.json found for cross-encoder/ms-marco-MiniLM-L-6-v2, initializing a new CrossEncoder model.
+2026-09-27 20:09:29,001 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2 "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:29,298 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+2026-09-27 20:09:29,545 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:29,811 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:29,846 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:30,089 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/adapter_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:30,425 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:30,732 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:31,008 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:31,040 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:31,346 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:31,654 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:31,962 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:32,268 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:32,575 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:32,825 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:33,089 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:33,394 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:33,703 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:33,979 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:34,214 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/tokenizer_config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22a2435fedfac32b9ad70f052d4f84007730cd3109%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:34,521 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:34,829 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:34,885 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:35,237 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:35,545 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:35,609 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2288bc4f74b33a2073abc9a66cb532b889448ac3ed%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:35,955 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:36,262 INFO httpx HTTP Request: HEAD https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:36,314 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/ms-marco-MiniLM-L6-v2/233902d25c440f23af6f7d6e94d2946bac0bee0a/tokenizer_config.json?%2Fcross-encoder%2Fms-marco-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22a2435fedfac32b9ad70f052d4f84007730cd3109%22 "HTTP/1.1 200 OK"
+2026-09-27 20:09:36,672 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:36,979 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-27 20:09:37,239 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L-6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-09-27 20:09:37,490 INFO httpx HTTP Request: GET https://huggingface.co/api/models/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-27 20:09:39,091 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:12,075 INFO docling.datamodel.document detected formats: [<InputFormat.MD: 'md'>]
+2026-09-27 20:10:12,075 INFO docling.document_converter Going to convert document batch...
+2026-09-27 20:10:12,075 INFO docling.document_converter Initializing pipeline for SimplePipeline with options hash e31558024d4d8dcdceced9016895293b
+2026-09-27 20:10:12,076 INFO docling.pipeline.base_pipeline Processing document vacation_e2e_mujxdnxi.md
+2026-09-27 20:10:12,078 INFO docling.document_converter Finished converting document vacation_e2e_mujxdnxi.md in 0.00 sec.
+2026-09-27 20:10:12,079 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 20:10:12,999 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:10:14,969 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:10:16,607 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:17,214 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:17,939 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:18,860 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:19,679 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:20,499 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:21,133 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:21,932 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:10:23,980 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:10:25,004 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:10:33,314 DEBUG bm25s Building index from IDs objects
+2026-09-27 20:10:35,794 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 20:10:36,582 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 20:10:44,871 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:10:45,792 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:10:48,968 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:18,908 INFO docling.datamodel.document detected formats: [<InputFormat.MD: 'md'>]
+2026-09-27 20:11:18,909 INFO docling.document_converter Going to convert document batch...
+2026-09-27 20:11:18,909 INFO docling.document_converter Initializing pipeline for SimplePipeline with options hash e31558024d4d8dcdceced9016895293b
+2026-09-27 20:11:18,909 INFO docling.pipeline.base_pipeline Processing document vacation_e2e_mujxf2qg.md
+2026-09-27 20:11:18,910 INFO docling.document_converter Finished converting document vacation_e2e_mujxf2qg.md in 0.00 sec.
+2026-09-27 20:11:18,911 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 20:11:19,893 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:11:20,813 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:11:22,758 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:23,577 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:24,397 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:25,225 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:26,036 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:27,042 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:27,888 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:28,697 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:11:30,745 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:11:31,769 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:11:39,976 DEBUG bm25s Building index from IDs objects
+2026-09-27 20:11:42,476 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 20:11:43,287 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 20:11:51,737 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:11:53,683 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:11:56,959 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:35,235 INFO docling.datamodel.document detected formats: [<InputFormat.MD: 'md'>]
+2026-09-27 20:12:35,235 INFO docling.document_converter Going to convert document batch...
+2026-09-27 20:12:35,235 INFO docling.document_converter Initializing pipeline for SimplePipeline with options hash e31558024d4d8dcdceced9016895293b
+2026-09-27 20:12:35,235 INFO docling.pipeline.base_pipeline Processing document vacation_e2e_mujxgqdv.md
+2026-09-27 20:12:35,236 INFO docling.document_converter Finished converting document vacation_e2e_mujxgqdv.md in 0.00 sec.
+2026-09-27 20:12:35,237 INFO presidio-analyzer Fetching all recognizers for language en
+2026-09-27 20:12:36,281 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:12:37,305 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:12:38,433 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:39,082 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:40,070 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:40,787 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:41,811 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:42,529 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:43,450 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:44,087 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:12:46,122 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:12:47,226 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:12:55,208 DEBUG bm25s Building index from IDs objects
+2026-09-27 20:12:57,847 INFO backend.l05_enrichment.enrich spacy en_core_web_sm not found, trying next
+2026-09-27 20:12:58,644 WARNING backend.l05_enrichment.enrich using en_core_web_lg (1GB) — prefer en_core_web_sm for 12MB box
+2026-09-27 20:13:06,797 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:13:07,822 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:13:10,894 INFO httpx HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-27 20:16:19,004 INFO httpx HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-09-27 20:16:19,914 INFO httpx HTTP Request: POST https://api.jina.ai/v1/rerank "HTTP/1.1 200 OK"

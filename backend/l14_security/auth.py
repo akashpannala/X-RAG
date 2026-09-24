@@ -46,17 +46,6 @@ def validate_password(password: str) -> None:
         raise ValueError("password must be at least 8 characters")
 
 
-def _ph(con) -> str:
-    """Return placeholder for current connection: %s for PostgreSQL/psycopg, ? for SQLite."""
-    try:
-        import psycopg
-        if isinstance(con, psycopg.Connection):
-            return "%s"
-    except ImportError:
-        pass
-    return "?"
-
-
 def _ph_n(con, n: int) -> str:
     """Return n placeholders for current connection."""
     try:
@@ -99,7 +88,7 @@ def authenticate(username: str, password: str) -> User:
     con = meta_conn(settings.db_path)
     try:
         row = con.execute(
-            f"SELECT id, username, password_hash, groups_json FROM users WHERE username={_ph(con)}",
+            f"SELECT id, username, password_hash, groups_json FROM users WHERE username={_ph_n(con, 1)}",
             (username,),
         ).fetchone()
     finally:
@@ -136,7 +125,7 @@ def current_user(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> User
         con = meta_conn(settings.db_path)
         try:
             row = con.execute(
-                f"SELECT username, groups_json FROM users WHERE id={_ph(con)}",
+                f"SELECT username, groups_json FROM users WHERE id={_ph_n(con, 1)}",
                 (int(uid),),
             ).fetchone()
         finally:

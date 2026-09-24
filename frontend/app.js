@@ -341,29 +341,52 @@ function inlineCitations(html, citeList) {
     if (doc && !map.has(doc)) map.set(doc, map.size + 1);
   }
   const used = new Map(map);
-  // model is inconsistent: [name#chunk], [doc#name#chunk], groups [name#18, name#19],
-  // [doc#name#19, #20], full-width 【name#19】, or plain [n]
+  // chunk -> doc from server citations, so a bare [doc#N] placeholder can be resolved
+  const chunkDoc = new Map();
+  for (const c of citeList || []) {
+    const s = String(c).replace(/^\[|\]$/g, "").replace(/^doc#/, "");
+    const i = s.lastIndexOf("#");
+    if (i > 0 && !chunkDoc.has(s.slice(i + 1))) chunkDoc.set(s.slice(i + 1), s.slice(0, i));
+  }
+  const chip = (doc, chunk) => {
+    if (!map.has(doc)) map.set(doc, map.size + 1);
+    used.set(doc, map.get(doc));
+    const c = chunk ? ` data-chunk="${esc(chunk)}"` : "";
+    const t = chunk ? ` • chunk ${esc(chunk)}` : "";
+    return `<button class="${CHIPS_CITED}" data-cite="${esc(doc)}"${c} title="Source: ${esc(doc)}${t}" type="button">[${map.get(doc)}]</button>`;
+  };
+  // model is inconsistent: [name#chunk] (names may contain spaces), [doc#name#chunk],
+  // groups [name#18, name#19], [doc#name#19, #20], full-width 【name#19】, bare [doc#N], plain [n]
   const out = html.replace(/[[【][^\]】<]*[\]】]/g, (whole) => {
-    const pairs = [...whole.matchAll(/(?:doc#)?([^\[\]【】\s#<,]+)#(\d+)/g)].filter(
-      (m) => m[1] !== "doc"
-    );
-    if (pairs.length) {
-      const seen = new Set();
-      let html2 = "";
-      for (const m of pairs) {
-        const doc = m[1];
-        if (seen.has(doc)) continue;
-        seen.add(doc);
-        if (!map.has(doc)) map.set(doc, map.size + 1);
-        const n = map.get(doc);
-        used.set(doc, n);
-        html2 += `<button class="${CHIPS_CITED}" data-cite="${esc(doc)}" data-chunk="${esc(
-          m[2]
-        )}" title="Source: ${esc(doc)} • chunk ${esc(m[2])}" type="button">[${n}]</button>`;
+    const inner = whole.slice(1, -1);
+    const parts = [];
+    const seen = new Set();
+    let lastDoc = null;
+    let handled = false;
+    for (let seg of inner.split(",")) {
+      seg = seg.trim();
+      if (seg === "doc#chunk") {
+        handled = true;
+        continue; // echoed instruction, not a citation
       }
-      return html2;
+      let m;
+      if (/^#\d+$/.test(seg)) {
+        m = lastDoc && [lastDoc, seg.slice(1)];
+      } else if ((m = seg.match(/^(?:doc#)?(.+)#(\d+)$/))) {
+        let doc = m[1].trim();
+        if (doc === "doc") doc = chunkDoc.get(m[2]) || (map.size === 1 ? [...map.keys()][0] : "");
+        if (!doc) continue;
+        lastDoc = doc;
+        m = [doc, m[2]];
+      } else continue;
+      if (m && !seen.has(m[0])) {
+        seen.add(m[0]);
+        parts.push(chip(m[0], m[1]));
+      }
     }
-    const plain = whole.slice(1, -1);
+    if (parts.length) return parts.join("");
+    if (handled) return "";
+    const plain = inner.trim();
     if (/^\d+$/.test(plain)) {
       const n = parseInt(plain, 10);
       const doc = [...map.entries()].find(([, v]) => v === n)?.[0];
@@ -407,7 +430,20 @@ function answerHTML({ answer, citations, mode: m, cache_hit, verification, laten
     ? `<span class="font-mono text-[10px] bg-[#282a2c] text-[#ffb4ab] px-2 py-0.5 rounded-full font-medium border border-white/[0.05]">No Grounding</span>`
     : ver.chip;
 
-  const body = inlineCitations(markdownLite(answer), citations);
+  let body = inlineCitations(markdownLite(answer), citations);
+  if (!body.includes("data-cite=") && lastCiteMap.size) {
+    // answer text carries no usable inline refs — give it a Sources row anyway
+    body += `
+      <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-2 flex-wrap">
+        <span class="font-mono text-[10px] text-[#757b82] uppercase tracking-wider font-semibold">Sources</span>
+        ${[...lastCiteMap.entries()]
+          .map(
+            ([doc, n]) =>
+              `<button class="${CHIPS_CITED}" data-cite="${esc(doc)}" title="Source: ${esc(doc)}" type="button">[${n}]</button>`
+          )
+          .join("")}
+      </div>`;
+  }
   const modePill = `
     <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#282a2c] text-[#9aa0a6] font-mono text-[11px] border border-white/[0.05]">
       <span class="material-symbols-outlined text-[13px] text-[#a8c7fa]">${m === "deep" ? "psychology" : "bolt"}</span>
