@@ -434,7 +434,7 @@ function answerHTML({ answer, citations, mode: m, cache_hit, verification, laten
   if (!body.includes("data-cite=") && lastCiteMap.size) {
     // answer text carries no usable inline refs — give it a Sources row anyway
     body += `
-      <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-2 flex-wrap">
+      <div class="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-2 flex-wrap" data-sources-row>
         <span class="font-mono text-[10px] text-[#757b82] uppercase tracking-wider font-semibold">Sources</span>
         ${[...lastCiteMap.entries()]
           .map(
@@ -661,11 +661,16 @@ function docRowHTML(d) {
   }</span>
         </div>
       </div>
-      ${
-        cited
-          ? `<span class="inline-flex items-center justify-center h-5 px-1.5 rounded-full bg-[#a8c7fa] text-[#041e49] font-mono text-[10px] font-bold shrink-0 shadow-sm">[${n}]</span>`
-          : ""
-      }
+      <div class="flex items-center gap-1 shrink-0">
+        ${
+          cited
+            ? `<span class="inline-flex items-center justify-center h-5 px-1.5 rounded-full bg-[#a8c7fa] text-[#041e49] font-mono text-[10px] font-bold shadow-sm">[${n}]</span>`
+            : ""
+        }
+        <button type="button" class="p-1 rounded-lg text-[#9aa0a6] hover:text-[#ff8a80] hover:bg-[#282a2c] opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all" data-del="${esc(d.filename)}" title="Delete document" aria-label="Delete ${esc(d.filename)}">
+          <span class="material-symbols-outlined text-[16px]">delete</span>
+        </button>
+      </div>
     </div>
     <div class="mt-2.5 flex items-center ${cited ? "justify-between pl-1" : "gap-1"}">
       <div class="flex items-center gap-1 flex-wrap">
@@ -704,6 +709,24 @@ function renderDocs(list) {
       if (e.key === "Enter") selectDoc(el.dataset.filename);
     });
   });
+  box.querySelectorAll("[data-del]").forEach((btn) => {
+    btn.addEventListener("keydown", (e) => e.stopPropagation());
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const name = btn.dataset.del;
+      if (!confirm(`Delete ${name}? Vectors, indexes and the source file are removed for everyone who can see it.`)) return;
+      btn.disabled = true;
+      try {
+        await api(`/documents/${encodeURIComponent(name)}`, { method: "DELETE" });
+        toast(`${name} deleted`);
+        await refreshDocs();
+        removeCiteChips(name); // answers in view must not keep chips for a deleted doc
+      } catch (err) {
+        toast(err.message || String(err), "err");
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 function railRowFor(docname) {
@@ -721,6 +744,15 @@ function selectDoc(filename) {
   const meta = docs.find((d) => citeMatches(filename, d.filename));
   if (meta)
     toast(`${meta.filename} · ${meta.chunks} chunks · ${meta.allowed_groups.join(", ")}`);
+}
+
+function removeCiteChips(filename) {
+  document.querySelectorAll("#chatStream [data-cite]").forEach((chip) => {
+    if (citeMatches(chip.dataset.cite, filename)) chip.remove();
+  });
+  document.querySelectorAll("#chatStream [data-sources-row]").forEach((row) => {
+    if (!row.querySelector("[data-cite]")) row.remove();
+  });
 }
 
 function highlightCite(docname) {
@@ -822,7 +854,12 @@ function renderHistory(rows) {
             <span class="font-mono text-[10px] text-[#9aa0a6]">${time}</span>
           </div>
         </div>
-        ${active ? `<div class="w-1.5 h-1.5 rounded-full bg-[#a8c7fa] shrink-0 mt-2"></div>` : ""}
+        <div class="flex items-center gap-1 shrink-0 mt-0.5">
+          <button type="button" class="p-1 rounded-lg text-[#757b82] hover:text-[#ff8a80] hover:bg-[#282a2c] opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all" data-delconv="${r.id}" title="Delete chat" aria-label="Delete chat">
+            <span class="material-symbols-outlined text-[16px]">delete</span>
+          </button>
+          ${active ? `<div class="w-1.5 h-1.5 rounded-full bg-[#a8c7fa] shrink-0"></div>` : ""}
+        </div>
       </div>`;
     }
     html += `</div>`;
@@ -833,6 +870,24 @@ function renderHistory(rows) {
     el.addEventListener("click", load);
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") load();
+    });
+  });
+  box.querySelectorAll("[data-delconv]").forEach((btn) => {
+    btn.addEventListener("keydown", (e) => e.stopPropagation());
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const id = Number(btn.dataset.delconv);
+      if (!confirm("Delete this chat? This cannot be undone.")) return;
+      btn.disabled = true;
+      try {
+        await api(`/conversations/${id}`, { method: "DELETE" });
+        toast("Chat deleted");
+        if (activeHistoryId === id) newSession();
+        await refreshHistory();
+      } catch (err) {
+        toast(err.message || String(err), "err");
+        btn.disabled = false;
+      }
     });
   });
 }

@@ -242,3 +242,119 @@ def test_reingest_replaces_doc_and_groups(client, monkeypatch, tmp_path):
     mine = [m for m in meta if m["doc"] == "reingest_doc"]
     assert mine, "bm25 must index the re-ingested doc"
     assert all(m["allowed_groups"] == ["hr"] for m in mine)
+
+
+def test_delete_document_everywhere(client, monkeypatch, tmp_path):
+    """DELETE /documents/{fn} removes row, vectors, bm25 entries and the uploaded file."""
+    import backend.api as api_mod
+    import backend.l05_enrichment.enrich as enrich_mod
+    from backend import l07_storage as store
+    from backend.L06_sparse import bm25
+    from backend.config import settings
+    from backend.l08_freshness.store import meta_conn
+
+    monkeypatch.setattr(api_mod, "kuzu_record", lambda *a, **k: None)
+    monkeypatch.setattr(enrich_mod, "extract_entities", lambda text: [])
+    uploads = tmp_path / "uploads"
+    uploads.mkdir(exist_ok=True)
+    monkeypatch.setattr(settings, "upload_dir", str(uploads))
+    store.delete_doc.reset_mock()
+    store.add_docs.reset_mock()
+
+    headers = _headers(client, "deluser")
+    payload = b"# Handbook\n\nEmployees get 20 paid days off each year.\n"
+    r = client.post(
+        "/ingest?allowed_groups=public&enrich=false",
+        files={"f": ("del_doc.md", payload, "text/markdown")},
+        headers=headers,
+    )
+    assert r.status_code == 200, r.text
+    assert store.add_docs.call_count == 1
+    assert (uploads / "del_doc.md").exists()
+    assert any(d["filename"] == "del_doc.md" for d in client.get("/documents", headers=headers).json())
+
+    r = client.delete("/documents/del_doc.md", headers=headers)
+    assert r.status_code == 200, r.text
+
+    # gone from listing, metadata row, vectors (delete_doc called with stem), bm25, disk
+    assert not any(d["filename"] == "del_doc.md" for d in client.get("/documents", headers=headers).json())
+    assert store.delete_doc.call_args_list[-1].args == ("del_doc",)
+    con = meta_conn(settings.db_path)
+    n = con.execute("SELECT COUNT(*) FROM documents WHERE filename='del_doc.md'").fetchall()[0][0]
+    con.close()
+    assert n == 0
+    _, meta = bm25._load()
+    assert not [m for m in meta if m["doc"] == "del_doc"]
+    assert not (uploads / "del_doc.md").exists()
+
+    # second delete → 404
+    assert client.delete("/documents/del_doc.md", headers=headers).status_code == 404
+
+
+def test_delete_document_acl(client):
+    """Out-of-groups caller gets 404 (existence hidden); unauthenticated → 401."""
+    from backend.l08_freshness.store import jdump, meta_conn
+    from backend.config import settings
+
+    con = meta_conn(settings.db_path)
+    con.execute(
+        "INSERT INTO documents(filename, allowed_groups_json, hash, chunks) VALUES (?,?,?,?)",
+        ("del_hr_only.md", jdump(["hr"]), "f" * 64, 3),
+    )
+    con.commit()
+    con.close()
+
+    headers = _headers(client, "delacluser")  # default groups: public only
+    assert client.delete("/documents/del_hr_only.md", headers=headers).status_code == 404
+    assert client.delete("/documents/del_hr_only.md").status_code == 401
+
+    # row survives the failed attempts
+    con = meta_conn(settings.db_path)
+    n = con.execute("SELECT COUNT(*) FROM documents WHERE filename='del_hr_only.md'").fetchall()[0][0]
+    con.close()
+    assert n == 1
+
+
+def test_delete_conversation(client):
+    """DELETE /conversations/{id}: own row goes, others' survive, 404 on repeat/foreign/anonymous."""
+    from backend.config import settings
+    from backend.l08_freshness.store import jdump, meta_conn
+    from backend.l14_security.auth import authenticate
+
+    headers = _headers(client, "delconvuser")
+    uid = authenticate("delconvuser", "password1").id
+    other = _headers(client, "delconvother")
+    other_uid = authenticate("delconvother", "password1").id
+
+    con = meta_conn(settings.db_path)
+    ph = ", ".join(["?"] * 7)
+    con.execute(
+        f"INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json, citations_json) "
+        f"VALUES ({ph})",
+        (uid, "delete me", "answer", "quick", 0.0, jdump([]), jdump([])),
+    )
+    con.execute(
+        f"INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json, citations_json) "
+        f"VALUES ({ph})",
+        (other_uid, "not mine", "secret", "quick", 0.0, jdump([]), jdump([])),
+    )
+    con.commit()
+    mine = next(r[0] for r in con.execute("SELECT id FROM conversations WHERE query='delete me'"))
+    foreign = next(r[0] for r in con.execute("SELECT id FROM conversations WHERE query='not mine'"))
+    con.close()
+
+    # anonymous → 401
+    assert client.delete(f"/conversations/{mine}").status_code == 401
+    # another user's row → 404, survives
+    assert client.delete(f"/conversations/{foreign}", headers=headers).status_code == 404
+    # own row → 200, gone from listing
+    r = client.delete(f"/conversations/{mine}", headers=headers)
+    assert r.status_code == 200, r.text
+    assert r.json() == {"deleted": mine}
+    queries = [c["query"] for c in client.get("/conversations", headers=headers).json()]
+    assert "delete me" not in queries
+    # repeat → 404
+    assert client.delete(f"/conversations/{mine}", headers=headers).status_code == 404
+    # foreign row still there
+    foreign_left = [c["query"] for c in client.get("/conversations", headers=other).json()]
+    assert "not mine" in foreign_left

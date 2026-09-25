@@ -181,7 +181,8 @@ async function main() {
   }
 
   // ---- 5. history ----
-  await waitFor(`document.querySelectorAll("#historyList [data-conv]").length > 0`, 20000, "history row");
+  // refreshHistory() runs async after the answer — wait for OUR new row, not just any row
+  await waitFor(`(document.querySelector("#historyList [data-conv] p")?.textContent || "").includes("vacation policy")`, 20000, "history row with new query");
   check("history pane shows new conversation", true);
   const histQ = await evalJs(`document.querySelector("#historyList [data-conv] p").textContent`);
   check("history item has query", histQ.includes("vacation policy"), histQ);

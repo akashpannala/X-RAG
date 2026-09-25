@@ -266,6 +266,47 @@ def list_documents(user: User = Depends(current_user)):
     return out
 
 
+@app.delete("/documents/{filename}")
+def delete_document(filename: str, user: User = Depends(current_user)):
+    """Delete a document everywhere: vectors, BM25, SPLADE, metadata row, source file, answer cache.
+    ACL: caller's groups must intersect the doc's groups (same as listing/retrieval)."""
+    if Path(filename).name != filename:
+        raise HTTPException(400, "invalid filename")
+    con = meta_conn(settings.db_path)
+    try:
+        ph = _ph_n(con, 1)
+        rows = con.execute(
+            f"SELECT allowed_groups_json FROM documents WHERE filename={ph}", (filename,)
+        ).fetchall()
+        if not rows or not (set(user.groups) & set(jload(rows[0][0]))):
+            raise HTTPException(404, "document not found")
+        con.execute(f"DELETE FROM documents WHERE filename={ph}", (filename,))
+        con.commit()
+    finally:
+        con.close()
+    stem = Path(filename).stem
+    try:
+        store.delete_doc(stem)
+    except Exception as e:
+        log.warning("store.delete_doc(%s) failed: %s", stem, e)
+    try:
+        from backend.L06_sparse.bm25 import delete as bm25_delete
+        bm25_delete(stem)
+    except Exception as e:
+        log.warning("bm25.delete(%s) failed: %s", stem, e)
+    try:
+        from backend.L06_sparse.splade import delete as splade_delete
+        splade_delete(stem)
+    except Exception as e:
+        log.warning("splade.delete(%s) failed: %s", stem, e)
+    try:
+        (Path(settings.upload_dir) / filename).unlink(missing_ok=True)
+    except OSError as e:
+        log.warning("unlink(%s) failed: %s", filename, e)
+    clear_cache()  # cached answers may cite this doc's chunks
+    return {"deleted": filename}
+
+
 @app.get("/conversations")
 def list_conversations(user: User = Depends(current_user)):
     """Caller's own chat history, newest first."""
@@ -281,4 +322,21 @@ def list_conversations(user: User = Depends(current_user)):
         con.close()
     return [{"id": r[0], "query": r[1], "answer": r[2], "mode": r[3],
              "citations": jload(r[4]), "created_at": str(r[5])} for r in rows]
+
+
+@app.delete("/conversations/{conv_id}")
+def delete_conversation(conv_id: int, user: User = Depends(current_user)):
+    """Delete one of the caller's own conversations (404 if not theirs / missing)."""
+    con = meta_conn(settings.db_path)
+    try:
+        cur = con.execute(
+            f"DELETE FROM conversations WHERE id={_ph_n(con, 1)} AND user_id={_ph_n(con, 1)}",
+            (conv_id, user.id),
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(404, "conversation not found")
+        con.commit()
+    finally:
+        con.close()
+    return {"deleted": conv_id}
 

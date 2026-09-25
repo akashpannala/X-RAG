@@ -16,3 +16,6 @@ data/kuzu/*
 data/meta.db
 vendor/
 models/
+
+data/logs/
+data/answer_cache.db
