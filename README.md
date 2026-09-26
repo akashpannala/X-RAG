@@ -59,12 +59,12 @@ Covers ACL, pgvector cast, BM25 group filtering, auth, modes, cache, API surface
 
 | Kind | Where |
 |------|--------|
+| Tutorial / how-to / reference / explanation | [docs/](docs/README.md) |
 | Product / layers / deploy matrix | [SPEC.md](SPEC.md) |
 | Interactive API | `/docs` on a running server |
 | Config template | [.env.example](.env.example) |
+| Docker | [Dockerfile](Dockerfile) — usage in [docs/how-to.md](docs/how-to.md) |
 | This project entry point | this README |
-
-Architecture deep-dives, how-to guides, and a full tutorial live under `docs/` when added — for now use SPEC + Swagger.
 
 ---
 
