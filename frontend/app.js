@@ -2,7 +2,9 @@
 /* X-RAG workbench — vanilla wiring for the Stitch static export.
    Pages: index.html (login), chat.html (3-pane workbench). */
 
-const API = "http://localhost:8001";
+const API = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+  ? "http://localhost:8001"
+  : location.origin;
 const TOKEN_KEY = "xrag.token";
 
 const SUGGESTIONS = [

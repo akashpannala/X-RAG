@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from backend.config import settings
@@ -339,4 +340,10 @@ def delete_conversation(conv_id: int, user: User = Depends(current_user)):
     finally:
         con.close()
     return {"deleted": conv_id}
+
+
+# Serve frontend static files (chat.html, index.html, assets) — same-origin API calls
+FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 

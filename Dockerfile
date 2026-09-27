@@ -3,7 +3,7 @@ FROM python:3.13-slim
 # libgl1/libglib2.0-0: opencv (RapidOCR). curl: HEALTHCHECK.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       curl libgl1 libglib2.0-0 \
-    && rm -rf /varllib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -18,15 +18,20 @@ COPY frontend/ frontend/
 COPY tests/ tests/
 COPY pytest.ini docker-entrypoint.sh ./
 
+# Create non-root user (required by Choreo/WSO2 build scan)
+RUN useradd -m -u 1000 app && chown -R app:app /app
+
 ENV HOST=0.0.0.0 \
     PORT=8001 \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/models
 
-RUN mkdir -p data/uploads data/logs
+RUN mkdir -p data/uploads data/logs && chown -R app:app data
 
 VOLUME ["/app/data", "/models"]
-EXPOSE 8001 3000
+EXPOSE 8001
+
+USER app
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
   CMD curl -fsS "http://127.0.0.1:${PORT:-8001}/health" || exit 1
