@@ -22,20 +22,20 @@ COPY frontend/ frontend/
 COPY tests/ tests/
 COPY pytest.ini docker-entrypoint.sh ./
 
-# Create non-root user (required by Choreo/WSO2 build scan)
-RUN useradd -m -u 1000 app && chown -R app:app /app
+# WSO2 rule: USER must be a numeric UID in 10000–20000 (usernames rejected at build validation)
+RUN groupadd -g 10001 app && useradd -m -u 10001 -g app app && chown -R 10001:10001 /app
 
 ENV HOST=0.0.0.0 \
     PORT=8001 \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/models
 
-RUN mkdir -p data/uploads data/logs && chown -R app:app data
+RUN mkdir -p data/uploads data/logs && chown -R 10001:10001 /app/data
 
 VOLUME ["/app/data", "/models"]
 EXPOSE 8001
 
-USER app
+USER 10001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
   CMD curl -fsS "http://127.0.0.1:${PORT:-8001}/health" || exit 1
