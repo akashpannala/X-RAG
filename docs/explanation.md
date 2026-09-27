@@ -94,3 +94,32 @@ runs `check_requirements()`: it probes only the *configured* providers and refus
 one fails — checks only, never installs, never silently substitutes. The rerank step is the one
 place with an explicit fallback chain (configured provider → BGE → MiniLM) because reranking is
 quality-degrading but non-fatal if degraded; everything else fails loudly instead.
+
+## About what's deliberately left out
+
+Three workstreams were considered and cut: offline evaluation (the spec's removed L21), full
+observability, and heavyweight guardrails. Each was rejected for the same reason — weight
+disproportionate to the current scope — and each already has a thin slice covering the 80% case.
+
+**Evaluation.** A real eval harness means a golden question set, retrieval metrics (recall@k,
+MRR), answer metrics (faithfulness, citation precision), and a regression runner someone
+maintains on every model or prompt change. That's a second product, not a feature. What exists
+instead: per-answer runtime verification (`l18_verification` — CoVe-lite checks plus an LLM
+judge pass, surfaced as the "RAG Verified / Partially Grounded" pill with a supported ratio),
+plus 53 unit/integration tests and a 28-check browser suite pinning current behavior. Build the
+harness when answers start changing for reasons nobody can explain — that's the signal the thin
+slice stopped being enough.
+
+**Observability.** Full tracing (per-request stage timings, token/cost accounting, dashboards,
+alerting) needs infrastructure that costs more attention than the app it watches at this scale.
+What exists instead: rotating file logs (`data/logs/api.log`), the `/health` endpoint (provider,
+vector store, DB in one JSON), the answer cache as a query log, and the `conversations` table
+(who asked what, when, with which citations — a usable audit trail). When a user reports a bad
+answer, that trail plus the log is enough to replay it.
+
+**Guardrails.** Output moderation models, toxicity classifiers, and rate limiters add a network
+hop and a failure mode to every request. What exists instead: a prompt-injection screen plus a
+retrieval-confidence gate (`l14_security/injection.py` — weak retrieval refuses to answer rather
+than hallucinating), PII redaction at ingest (Presidio), pre-search ACL on every path, and JWT
+auth with server-side user re-checks. The philosophy: refuse loudly at the weakest link (empty
+context, obvious injection) rather than scoring everything.

@@ -30,27 +30,27 @@ docker run -d --name xrag \
   xrag
 ```
 
-If host ports are already taken by a host-side deploy, shift them:
+If host ports are already taken by a host-side deploy, shift the port:
 
 ```bash
 docker run -d --name xrag --network host \
-  -e PORT=8002 -e UI_PORT=3001 \
+  -e PORT=8002 \
   -v "$PWD/.env:/app/.env:ro" -v xrag-data:/app/data -v xrag-models:/models \
   xrag
 ```
 
-The UI calls the API at `http://localhost:8001` (hardcoded in `frontend/app.js`), so leave
-`PORT=8001` unless you also point the UI elsewhere.
+UI and API move together — the container serves both on the single `PORT`
+(`frontend/app.js` uses same-origin outside localhost, `localhost:8001` in local dev).
 
 Bridge networking works too when everything you depend on is IPv4-reachable:
 
 ```bash
-docker run -d --name xrag -p 8001:8001 -p 3000:3000 \
+docker run -d --name xrag -p 8001:8001 \
   -v "$PWD/.env:/app/.env:ro" -v xrag-data:/app/data -v xrag-models:/models \
   xrag
 ```
 
-- UI: <http://localhost:3000> · Swagger: <http://localhost:8001/docs>
+- UI + Swagger on the same port: <http://localhost:8001> (UI at `/`, Swagger at `/docs`)
 - `SEED=0 docker run ...` skips demo-user creation (default: creates/updates `LUFFY` and `ZORO`).
 - `xrag-data` holds uploads, indexes, logs. `xrag-models` holds Hugging Face models (`HF_HOME`).
 - With `EMBED_PROVIDER=bge`, pull the model into the volume once:
@@ -130,3 +130,22 @@ node frontend/e2e.mjs
 
 The e2e run uploads fixture documents and asks fixture questions — clean them up afterwards
 (delete `vacation_e2e_*` documents and conversations matching "vacation policy").
+
+## How to use the built-in quality controls
+
+No eval harness, no tracing stack — but the thin slices are usable today.
+(Rationale: [explanation](explanation.md#about-whats-deliberately-left-out).)
+
+- **Verification pill:** every answer carries `verification.supported_ratio`; the UI shows
+  "RAG Verified" (≥60% of claims supported by cited chunks) or "Partially Grounded".
+  Treat a low ratio like a test failure — inspect the cited chunks, not just the prose.
+- **Refusals are a feature:** "I can't answer that: low retrieval confidence" means the
+  confidence gate fired (nothing retrievable cleared the floor). Fix it by uploading the
+  missing document, not by rephrasing.
+- **Cache-hit pill:** a repeated (or paraphrased, cosine > 0.96) question shows "Cache Hit".
+  Ingesting or deleting any document clears the cache, so citations never go stale.
+- **Audit trail:** `GET /conversations` (or the `conversations` table) shows who asked
+  what, with which citations — enough to replay any reported bad answer alongside
+  `data/logs/api.log`.
+- **Boot checks:** if the server won't start, the log names the failing provider row
+  (`FAIL Groq key`, `FAIL Postgres`…). Fix the env var, not the code.

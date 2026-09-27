@@ -10,6 +10,19 @@ Provider-pluggable enterprise RAG: upload documents, ask questions, get answers 
 
 ---
 
+## Status — live on Choreo
+
+Deployed: <https://d3739c77-849e-44a6-bdef-e35881d9a1a6.e1-us-east-azure.choreoapps.dev> (demo users `LUFFY` / `ZORO`, password `password`)
+
+- **Cited answers** — every claim traceable to `[doc#chunk]`; click a chip, the source flashes
+- **Department ACL enforced before search** — HR docs never enter ENG retrieval, counts and caches included
+- **Quick / Deep modes** — role-defaulted, per-question override
+- **Provider-pluggable** — swap LLM, embeddings, reranker, vector store, or DB in one `.env`
+- **Single-port Docker** — FastAPI serves API + UI; non-root image, `53/53` tests passing in-container
+- **Deliberately lean** — no eval harness, no tracing stack, no moderation models ([why](docs/explanation.md#about-whats-deliberately-left-out)); verification pills, cache, and audit trail cover it
+
+---
+
 ## Quickstart
 
 ```bash
@@ -48,7 +61,8 @@ ACL is pre-search: a user’s `groups` must intersect the document’s `allowed_
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest tests/ -q
+.venv/bin/python -m pytest tests/ -q   # 53 passed
+node frontend/e2e.mjs                   # 28/28 in headless Chrome (needs backend + frontend + CDP :9222)
 ```
 
 Covers ACL, pgvector cast, BM25 group filtering, auth, modes, cache, API surface.

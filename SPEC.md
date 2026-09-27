@@ -125,7 +125,7 @@ Frontend needs only one var (bake-time): `frontend/.env` → `NEXT_PUBLIC_API_UR
 | 19 | Verification | `CoVe-lite` + `HHEM` parked → LLM fallback | `l18_verification/` | 3 | ◐ |
 | 20 | Memory + Cache | `answer_cache` (`cosine>0.96` + `EMBED_PROVIDER`) + LRU (`DB`) | `l19_cache/` | 2 | ✅ |
 
-> ◐ = core works, named sub-feature deferred/gated per spec (Qwen2-VL, full abstractive RECOMP, HHEM). L21 Eval + L22 Infra removed.
+> ◐ = core works, named sub-feature deferred/gated per spec (Qwen2-VL, full abstractive RECOMP, HHEM). L21 Eval + L22 Infra removed — rationale and thin-slice coverage: [docs/explanation.md#about-whats-deliberately-left-out](docs/explanation.md#about-whats-deliberately-left-out).
 
 ---
 
