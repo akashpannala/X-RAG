@@ -39,9 +39,23 @@ def clean(texts: list[str]) -> list[str]:
 def _get_analyzer():
     global _analyzer
     if _analyzer is None:
-        from presidio_analyzer import AnalyzerEngine
+        import os
 
-        _analyzer = AnalyzerEngine()
+        import spacy
+        from presidio_analyzer import AnalyzerEngine
+        from presidio_analyzer.nlp_engine import NlpEngineProvider
+
+        # Small model by default (12MB vs 1GB lg) — baked into the Docker image.
+        # Presidio pip-installs whatever model is configured when missing, so
+        # never let the default (lg) reach a container without it.
+        model = os.environ.get("SPACY_MODEL") or (
+            "en_core_web_sm" if spacy.util.is_package("en_core_web_sm") else "en_core_web_lg"
+        )
+        provider = NlpEngineProvider(nlp_configuration={
+            "nlp_engine_name": "spacy",
+            "models": [{"lang_code": "en", "model_name": model}],
+        })
+        _analyzer = AnalyzerEngine(nlp_engine=provider.create_engine())
     return _analyzer
 
 

@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Small spaCy model for Presidio PII (~12MB). Presidio pip-installs its configured
+# model on first use — bake sm in so containers never fetch the 800MB lg at runtime.
+RUN pip install --no-cache-dir https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+
 COPY backend/ backend/
 COPY frontend/ frontend/
 COPY tests/ tests/
