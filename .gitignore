@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .env
+x.env/
 data/bm25.pkl
 data/splade.pkl
 frontend/node_modules/
