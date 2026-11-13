@@ -1,0 +1,56 @@
+{
+  "name": "quantum-free-journals",
+  "description": "Bundled demo set over the single-page document 'Free journals with 0 APC charges'. Ingest that PDF as a public document before running; point --cases at your own file for a different corpus.",
+  "cases": [
+    {
+      "id": "waiver",
+      "question": "Which journal offers a no-questions-asked fee waiver, and what must an author do to get it?",
+      "expected_output": "Quantum (quantum-journal.org) offers a no-questions-asked waiver. During submission the author ticks a box saying 'I cannot pay the fee'; no proof is required and the waiver is granted automatically."
+    },
+    {
+      "id": "scipost-apc",
+      "question": "Is SciPost Physics free to publish in, and how is it funded?",
+      "expected_output": "Yes. SciPost Physics charges 0 APC. It is strictly Diamond Open Access, funded by a consortium of universities."
+    },
+    {
+      "id": "qml-venue",
+      "question": "Which journal is recommended for quantum machine learning papers?",
+      "expected_output": "The Journal of Machine Learning Research (JMLR): a Q1, fully free journal that accepts high-quality theoretical quantum machine learning papers."
+    },
+    {
+      "id": "lmcs-focus",
+      "question": "What topics is Logical Methods in Computer Science (LMCS) suited for?",
+      "expected_output": "LMCS is a Q2, 0-APC theoretical computer science venue suited to quantum logic, quantum programming languages, and quantum semantics. It is run by the community on the Episciences platform."
+    },
+    {
+      "id": "theory-of-computing",
+      "question": "Which listed journal is best for quantum algorithms, complexity theory, and cryptography?",
+      "expected_output": "Theory of Computing: a Q2/Q3, free Diamond Open Access journal focused on strictly theoretical topics such as quantum algorithms, complexity theory, and cryptography."
+    },
+    {
+      "id": "scipost-core",
+      "question": "What is SciPost Physics Core?",
+      "expected_output": "SciPost Physics Core is a Q2 sister journal of SciPost Physics, for papers that are scientifically rigorous but less groundbreaking than those in the main journal."
+    },
+    {
+      "id": "q1-journals",
+      "question": "Which journals in the list are ranked Q1?",
+      "expected_output": "Three journals are Q1: Quantum, SciPost Physics, and the Journal of Machine Learning Research (JMLR)."
+    },
+    {
+      "id": "quantum-fee",
+      "question": "What is the official fee for the Quantum journal, and how can it be waived?",
+      "expected_output": "Quantum officially charges about 600 euros. Authors can get a no-questions-asked waiver by ticking the 'I cannot pay the fee' box; no proof is required."
+    },
+    {
+      "id": "episciences",
+      "question": "Which venue is run by the community on the Episciences platform?",
+      "expected_output": "Logical Methods in Computer Science (LMCS)."
+    },
+    {
+      "id": "scipost-focus",
+      "question": "What does SciPost Physics focus on?",
+      "expected_output": "High-quality physics research including quantum information, many-body quantum physics, and experimental quantum tech."
+    }
+  ]
+}

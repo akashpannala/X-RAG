@@ -15,6 +15,7 @@ from backend.l12_agents.agents import graph_agent, image_agent, sql_agent, vecto
 from backend.l13_rerank.cascade import cascade
 from backend.l14_security.acl import groups_filter
 from backend.l14_security.injection import confident, screen
+from backend.l14_security.nemo import screen_nemo
 from backend.l16_assembly.prompt import assemble
 from backend.l17_generation.llm import get_llm
 from backend.l19_cache import cache as qcache
@@ -39,6 +40,8 @@ class RAGState(TypedDict, total=False):
 
 def guard(s: RAGState) -> dict:
     reason = screen(s["query"])
+    if not reason:
+        reason = screen_nemo(s["query"])
     if reason:
         return {"blocked": reason}
     return {"mode": resolve(s.get("groups", []), s.get("mode_override"))}

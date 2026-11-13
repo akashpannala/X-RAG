@@ -34,3 +34,6 @@ numpy==2.4.6
 rapidocr-onnxruntime>=1.2
 spacy>=3.8
 transformers>=4.42
+# nemo + deep eval (lazy / fail-soft integration)
+nemoguardrails>=0.24.0
+deepeval>=4.3.0
