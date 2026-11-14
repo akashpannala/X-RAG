@@ -22,3 +22,5 @@ data/logs/
 data/answer_cache.db
 .deepeval/
 .pytest_cache/
+
+deploy.env

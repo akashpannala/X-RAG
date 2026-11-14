@@ -1,0 +1,21 @@
+# Build context only — runtime data and secrets stay out of the image
+.venv/
+.git/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.deepeval/
+.env
+.env.*
+data/
+models/
+vendor/
+doc_data/
+frontend/node_modules/
+frontend/stitch_pixel_perfect_page_clone/
+*.pdf
+banner.png
+logo.png
+README.md
+SPEC.md
+tests/

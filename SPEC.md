@@ -4,7 +4,7 @@
 |---|---|
 | **Product** | X-RAG |
 | **Stack** | Pluggable: `LLM` (Groq / Ollama / llama.cpp / OpenAI / Anthropic) + `Vector` (pgvector / Qdrant) + `DB` (SQLite / Postgres / Supabase) + `Embed` (BGE-M3 / Jina / Voyage / Cohere) + `Sparse` (BM25S / SPLADE-v3 gated) + `Graph` (Kuzu) + FastAPI + static UI |
-| **Deploy** | `local` (laptop) · `ssh` (Oracle VPS tunnel) · `online` (Groq / Qdrant Cloud / Supabase) — all via `.env` |
+| **Deploy** | `local` (laptop) · `ssh` (Oracle VPS tunnel) · `container` (Docker Compose + Caddy) · `online` (Groq / Qdrant Cloud / Supabase) — all via `.env` |
 | **Network** | Works offline (local) or online — `.env` decides |
 | **Status** | **Phases 1–3 complete; 17/20 layers complete, 3 partial (deferred sub-features); L21/L22 removed** |
 
@@ -110,7 +110,7 @@ ACL is enforced **before** search on every path (dense, sparse, graph, cache key
 
 ---
 
-## 7. Deployment — No App Container
+## 7. Deployment — Local, SSH, Container, Online
 
 **Local:**
 
@@ -130,13 +130,22 @@ ssh -L 6333:localhost:6333 -L 11434:localhost:11434 ubuntu@<vps-ip> -N &
 # .env: VECTOR_BASE_URL=http://localhost:6333  LLM_BASE_URL=http://localhost:11434  LLM_PROVIDER=ollama
 ```
 
+**Container (AWS EC2 demo):**
+
+```bash
+# deploy.env: DOMAIN, XRAG_DATA_DIR=/mnt/xrag/data, QDRANT_STORAGE_DIR=/mnt/xrag/qdrant
+docker compose --env-file deploy.env up -d --build
+```
+
+`xrag` + `qdrant` + `caddy`; Caddy terminates TLS for `DOMAIN`; runtime state stays on EBS. See [Deploy on AWS EC2](README.md#deploy-on-aws-ec2-api-demo).
+
 **Online (hosted):**
 
 ```ini
 LLM_PROVIDER=groq
 LLM_API_KEY=...
 DB_PROVIDER=supabase
-DB_URL=postgresql://...supabase...
+DB_URL=postgresql://...pooler.supabase.com:5432/postgres?sslmode=require
 VECTOR_BASE_URL=https://xxx.qdrant.io
 VECTOR_API_KEY=...
 ```

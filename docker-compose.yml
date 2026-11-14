@@ -1,0 +1,48 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - ${QDRANT_STORAGE_DIR:-qdrant_data}:/qdrant/storage
+    restart: unless-stopped
+
+  xrag:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      VECTOR_BASE_URL: http://qdrant:6333
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      SEED: ${SEED:-1}
+    volumes:
+      - ${XRAG_DATA_DIR:-xrag_data}:/app/data
+      - ${XRAG_MODELS_DIR:-xrag_models}:/models
+    depends_on:
+      - qdrant
+    ports:
+      - "127.0.0.1:${XRAG_PORT:-8001}:8001"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - xrag
+    restart: unless-stopped
+
+volumes:
+  xrag_data:
+  xrag_models:
+  qdrant_data:
+  caddy_data:
+  caddy_config:

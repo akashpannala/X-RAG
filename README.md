@@ -24,6 +24,7 @@ Provider-pluggable enterprise RAG: upload documents, ask questions, get answers 
   - [Run the tests](#run-the-tests)
   - [Benchmark answer quality](#benchmark-answer-quality)
   - [Use the built-in quality controls](#use-the-built-in-quality-controls)
+  - [Deploy on AWS EC2 (API demo)](#deploy-on-aws-ec2-api-demo)
 - [Reference](#reference)
   - [HTTP API](#http-api)
   - [CLI](#cli)
@@ -301,6 +302,87 @@ NEMO_GUARD=0 .venv/bin/python -m backend.l18_verification.benchmark \
 - **Audit trail:** `GET /conversations` (or the `conversations` table) shows who asked what, with which citations — enough to replay any reported bad answer alongside `data/logs/api.log`.
 - **Boot checks:** if the server won't start, the log names the failing provider row (`FAIL Groq key`, `FAIL Postgres`…). Fix the env var, not the code.
 
+### Deploy on AWS EC2 (API demo)
+
+The AWS deployment is only a demo host. The same image runs air-gapped on a company server with `LLM_PROVIDER=ollama`, `EMBED_PROVIDER=bge`, `DB_PROVIDER=sqlite`, and local Qdrant. On AWS, `.env` points at Groq/Jina/Supabase so the API is reachable from any device.
+
+**Stack** (`docker-compose.yml`): `xrag` (API + UI) + `qdrant` (fallback) + `caddy` (TLS). Caddy terminates HTTPS and proxies to `xrag:8001`.
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Python 3.13, CPU torch, runtime deps, non-root UID 10001 |
+| `docker-entrypoint.sh` | waits for Qdrant, seeds users, starts the API |
+| `docker-compose.yml` | `xrag` + `qdrant` + `caddy` |
+| `Caddyfile` | HTTPS reverse proxy (200 MB uploads) |
+| `requirements-deploy.txt` | runtime deps (no DeepEval) |
+
+**1. Instance** — `t3.large` (8 GiB) is the minimum for ingest/deep; `t3.xlarge` (16 GiB) if the build runs out of memory. Ubuntu 24.04, 30 GB root + 100 GB gp3 mounted at `/mnt/xrag`. The free-tier `t3.micro` (1 GiB) will OOM — use signup credits or a Spot `t3.large` instead.
+
+**2. Security group** — inbound 443/80 from anywhere, 22 from your IP; outbound all (Groq, Jina, Supabase, Let's Encrypt).
+
+**3. Elastic IP + DuckDNS** — point `xrag-<name>.duckdns.org` at the EIP.
+
+**4. Install**
+
+```bash
+sudo apt-get update
+sudo apt-get install -y docker.io docker-compose-v2 git
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+sudo mkdir -p /mnt/xrag/data /mnt/xrag/qdrant
+sudo chown -R 10001:10001 /mnt/xrag/data   # xrag runs as UID 10001
+# qdrant runs as root in its official image, so /mnt/xrag/qdrant needs no chown
+git clone https://github.com/akashpannala/X-RAG.git ~/xrag
+cd ~/xrag
+```
+
+**5. Environment** — create `.env` (normal provider config, `chmod 600`) and `deploy.env` (compose interpolation):
+
+```ini
+# .env — this deployment uses the hosted providers
+LLM_PROVIDER=groq
+LLM_API_KEY=...
+EMBED_PROVIDER=jina
+EMBED_API_KEY=...
+RERANK_PROVIDER=jina
+RERANK_API_KEY=...
+DB_PROVIDER=supabase
+DB_URL=postgresql://...:5432/postgres?sslmode=require
+DB_PATH=
+VECTOR_BASE_URL=http://qdrant:6333
+NEMO_GUARD=0
+JWT_SECRET=<random-64-hex>
+SEED=1
+```
+
+```ini
+# deploy.env
+DOMAIN=xrag-<name>.duckdns.org
+XRAG_DATA_DIR=/mnt/xrag/data
+QDRANT_STORAGE_DIR=/mnt/xrag/qdrant
+XRAG_PORT=8001
+SEED=1
+```
+
+Use the Supabase **session pooler** on port 5432 (IPv4): host `aws-0-<region>.pooler.supabase.com`, user `postgres.<project-ref>`. The direct `db.<ref>.supabase.co` host is IPv6-only and will fail inside Docker/EC2 without IPv6.
+
+**6. Start**
+
+```bash
+sudo docker compose --env-file deploy.env up -d --build
+sudo docker compose logs -f xrag
+curl -fsS https://xrag-<name>.duckdns.org/health
+```
+
+First build takes 5–10 minutes. Caddy issues the TLS certificate automatically (outbound 80/443 must stay open).
+
+**7. Pre-warm** — open `https://xrag-<name>.duckdns.org/`, log in as `LUFFY` / `password`, and ask one deep question. The first deep query downloads the sparse/verification models (hundreds of MB); they persist in the `xrag_models` volume. Set `XRAG_MODELS_DIR=/mnt/xrag/models` to keep them on EBS.
+
+**8. Demo (UI)** — open `https://xrag-<name>.duckdns.org/`. Log in as `LUFFY` / `password`, upload `data/uploads/Free Journals.pdf` with the group chips (`hr`, `eng`, `public`), ask a question, and click a citation chip to show the source. Toggle Quick/Deep to show both pipelines. Log in as `ZORO` (password `password`) for a second role. To demo ACL exclusion, upload the same PDF with only `hr` selected and ask as `ZORO` — it will not appear.
+
+Stop the instance when idle (EC2 console → Stop). You pay only for EBS and the public IPv4 while stopped.
+
+CloudFront is not needed: Caddy + Let's Encrypt already provides HTTPS, and CloudFront's 60-second origin timeout would break long ingests.
+
 ---
 
 ## Reference
@@ -571,6 +653,9 @@ backend/
 frontend/             static UI (index.html, chat.html, app.js, e2e.mjs)
 data/                 uploads, indexes, logs, evaluation artifacts
 tests/                pytest suite
+Dockerfile            API image (CPU torch, non-root UID 10001)
+docker-compose.yml    xrag + qdrant + caddy
+Caddyfile             HTTPS reverse proxy for the AWS demo
 SPEC.md               product spec as a completion checklist
 ```
 
