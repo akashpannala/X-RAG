@@ -62,8 +62,11 @@ Everything is deliberately lean: no tracing stack, no separate eval dashboard. A
 - **Remote primary, local fallback** — pgvector/Supabase is used when reachable; otherwise Qdrant/SQLite. Selection happens at boot (`backend/l07_storage/__init__.py`).
 - **Dev-only benchmark** — 80% pass on the bundled `quantum-free-journals` set (see [Evaluation](#evaluation)).
 - **Tests** — 80 unit/integration tests (`pytest`) plus a browser e2e suite (`frontend/e2e.mjs`).
+- **Live AWS deployment** — Docker Compose (`xrag` + Qdrant + Caddy) on EC2, HTTPS at <https://xrag.duckdns.org>.
 
-Live demo: <https://d3739c77-849e-44a6-bdef-e35881d9a1a6.e1-us-east-azure.choreoapps.dev> (demo users `LUFFY` / `ZORO`, password `password`).
+**Live demo:** <https://xrag.duckdns.org> · [Swagger](https://xrag.duckdns.org/docs) · [Health](https://xrag.duckdns.org/health)
+
+> Demo only: users `LUFFY` / `ZORO`, password `password`; the corpus is a sample PDF. Do not upload confidential documents. The EC2 instance is stopped when not demoing.
 
 ---
 
@@ -304,7 +307,7 @@ NEMO_GUARD=0 .venv/bin/python -m backend.l18_verification.benchmark \
 
 ### Deploy on AWS EC2 (API demo)
 
-The AWS deployment is only a demo host. The same image runs air-gapped on a company server with `LLM_PROVIDER=ollama`, `EMBED_PROVIDER=bge`, `DB_PROVIDER=sqlite`, and local Qdrant. On AWS, `.env` points at Groq/Jina/Supabase so the API is reachable from any device.
+The reference deployment is live at <https://xrag.duckdns.org>. The AWS deployment is only a demo host. The same image runs air-gapped on a company server with `LLM_PROVIDER=ollama`, `EMBED_PROVIDER=bge`, `DB_PROVIDER=sqlite`, and local Qdrant. On AWS, `.env` points at Groq/Jina/Supabase so the API is reachable from any device.
 
 **Stack** (`docker-compose.yml`): `xrag` (API + UI) + `qdrant` (fallback) + `caddy` (TLS). Caddy terminates HTTPS and proxies to `xrag:8001`.
 
@@ -314,6 +317,7 @@ The AWS deployment is only a demo host. The same image runs air-gapped on a comp
 | `docker-entrypoint.sh` | waits for Qdrant, seeds users, starts the API |
 | `docker-compose.yml` | `xrag` + `qdrant` + `caddy` |
 | `Caddyfile` | HTTPS reverse proxy (200 MB uploads) |
+| `deploy.env.example` | Compose variables template (`DOMAIN`, EBS paths) |
 | `requirements-deploy.txt` | runtime deps (no DeepEval) |
 
 **1. Instance** — `t3.large` (8 GiB) is the minimum for ingest/deep; `t3.xlarge` (16 GiB) if the build runs out of memory. Ubuntu 24.04, 30 GB root + 100 GB gp3 mounted at `/mnt/xrag`. The free-tier `t3.micro` (1 GiB) will OOM — use signup credits or a Spot `t3.large` instead.
@@ -328,14 +332,19 @@ The AWS deployment is only a demo host. The same image runs air-gapped on a comp
 sudo apt-get update
 sudo apt-get install -y docker.io docker-compose-v2 git
 sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
-sudo mkdir -p /mnt/xrag/data /mnt/xrag/qdrant
-sudo chown -R 10001:10001 /mnt/xrag/data   # xrag runs as UID 10001
+sudo mkdir -p /mnt/xrag/data /mnt/xrag/qdrant /mnt/xrag/models
+sudo chown -R 10001:10001 /mnt/xrag/data /mnt/xrag/models   # xrag runs as UID 10001
 # qdrant runs as root in its official image, so /mnt/xrag/qdrant needs no chown
 git clone https://github.com/akashpannala/X-RAG.git ~/xrag
 cd ~/xrag
 ```
 
-**5. Environment** — create `.env` (normal provider config, `chmod 600`) and `deploy.env` (compose interpolation):
+**5. Environment** — copy the compose template, fill the domain, and add provider secrets to `.env`:
+
+```bash
+cp deploy.env.example deploy.env
+chmod 600 .env deploy.env
+```
 
 ```ini
 # .env — this deployment uses the hosted providers
@@ -359,6 +368,7 @@ SEED=1
 DOMAIN=xrag-<name>.duckdns.org
 XRAG_DATA_DIR=/mnt/xrag/data
 QDRANT_STORAGE_DIR=/mnt/xrag/qdrant
+XRAG_MODELS_DIR=/mnt/xrag/models
 XRAG_PORT=8001
 SEED=1
 ```
@@ -373,11 +383,15 @@ sudo docker compose logs -f xrag
 curl -fsS https://xrag-<name>.duckdns.org/health
 ```
 
-First build takes 5–10 minutes. Caddy issues the TLS certificate automatically (outbound 80/443 must stay open).
+First build takes 5–10 minutes. Caddy issues the TLS certificate automatically (outbound 80/443 must stay open). Verify the EBS mounts are writable by the non-root app:
+
+```bash
+sudo docker compose exec xrag sh -c 'touch /app/data/.w /models/.w && rm /app/data/.w /models/.w && echo writable'
+```
 
 **7. Pre-warm** — open `https://xrag-<name>.duckdns.org/`, log in as `LUFFY` / `password`, and ask one deep question. The first deep query downloads the sparse/verification models (hundreds of MB); they persist in the `xrag_models` volume. Set `XRAG_MODELS_DIR=/mnt/xrag/models` to keep them on EBS.
 
-**8. Demo (UI)** — open `https://xrag-<name>.duckdns.org/`. Log in as `LUFFY` / `password`, upload `data/uploads/Free Journals.pdf` with the group chips (`hr`, `eng`, `public`), ask a question, and click a citation chip to show the source. Toggle Quick/Deep to show both pipelines. Log in as `ZORO` (password `password`) for a second role. To demo ACL exclusion, upload the same PDF with only `hr` selected and ask as `ZORO` — it will not appear.
+**8. Demo (UI)** — open `https://xrag-<name>.duckdns.org/`. The PDF is gitignored, so a fresh clone does not include it: upload it through the UI (or `scp` it to `/mnt/xrag/data/uploads/`) with the group chips (`hr`, `eng`, `public`). Log in as `LUFFY` / `password`, ask a question, and click a citation chip to show the source. Toggle Quick/Deep to show both pipelines. Log in as `ZORO` (password `password`) for a second role. To demo ACL exclusion, upload the same PDF with only `hr` selected and ask as `ZORO` — it will not appear.
 
 Stop the instance when idle (EC2 console → Stop). You pay only for EBS and the public IPv4 while stopped.
 
@@ -656,6 +670,8 @@ tests/                pytest suite
 Dockerfile            API image (CPU torch, non-root UID 10001)
 docker-compose.yml    xrag + qdrant + caddy
 Caddyfile             HTTPS reverse proxy for the AWS demo
+deploy.env.example    Compose variables template (DOMAIN, EBS paths)
+LICENSE               MIT
 SPEC.md               product spec as a completion checklist
 ```
 
@@ -681,4 +697,6 @@ The UI keeps its own copies under `frontend/assets/` (`logo-long.png`, `logo-sho
 | Latest benchmark scorecard | [data/evaluation.md](data/evaluation.md) · raw [data/evaluation.json](data/evaluation.json) |
 | Interactive API | `/docs` on a running server |
 | Config template | [.env.example](.env.example) |
+| Compose template | [deploy.env.example](deploy.env.example) |
 | Browser e2e | [frontend/e2e.mjs](frontend/e2e.mjs) |
+| License | [MIT](LICENSE) |

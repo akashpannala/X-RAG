@@ -5,6 +5,7 @@
 | **Product** | X-RAG |
 | **Stack** | Pluggable: `LLM` (Groq / Ollama / llama.cpp / OpenAI / Anthropic) + `Vector` (pgvector / Qdrant) + `DB` (SQLite / Postgres / Supabase) + `Embed` (BGE-M3 / Jina / Voyage / Cohere) + `Sparse` (BM25S / SPLADE-v3 gated) + `Graph` (Kuzu) + FastAPI + static UI |
 | **Deploy** | `local` (laptop) · `ssh` (Oracle VPS tunnel) · `container` (Docker Compose + Caddy) · `online` (Groq / Qdrant Cloud / Supabase) — all via `.env` |
+| **Live** | <https://xrag.duckdns.org> (EC2 · Docker Compose · Caddy) |
 | **Network** | Works offline (local) or online — `.env` decides |
 | **Status** | **Phases 1–3 complete; 17/20 layers complete, 3 partial (deferred sub-features); L21/L22 removed** |
 
@@ -133,7 +134,8 @@ ssh -L 6333:localhost:6333 -L 11434:localhost:11434 ubuntu@<vps-ip> -N &
 **Container (AWS EC2 demo):**
 
 ```bash
-# deploy.env: DOMAIN, XRAG_DATA_DIR=/mnt/xrag/data, QDRANT_STORAGE_DIR=/mnt/xrag/qdrant
+# cp deploy.env.example deploy.env
+# deploy.env: DOMAIN, XRAG_DATA_DIR=/mnt/xrag/data, QDRANT_STORAGE_DIR=/mnt/xrag/qdrant, XRAG_MODELS_DIR=/mnt/xrag/models
 docker compose --env-file deploy.env up -d --build
 ```
 
@@ -160,3 +162,6 @@ VECTOR_API_KEY=...
 - [x] Remote-primary + local-fallback storage selection verified
 - [x] Documentation consolidated into [README.md](README.md); obsolete `docs/` removed
 - [x] Logo/banner moved to repo root (`logo.png`, `banner.png`)
+- [x] Container deployment — Docker Compose (`xrag` + Qdrant + Caddy) live at <https://xrag.duckdns.org>
+- [x] AWS EC2 + DuckDNS + Let's Encrypt; EBS-backed data/models/Qdrant volumes
+- [x] Supabase IPv4 session pooler verified (direct `db.<ref>.supabase.co` host is IPv6-only)
