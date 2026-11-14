@@ -14,6 +14,7 @@ Provider-pluggable enterprise RAG: upload documents, ask questions, get answers 
 
 - [Overview](#overview)
 - [Status](#status)
+- [Screenshots](#screenshots)
 - [Evaluation](#evaluation)
 - [Quickstart](#quickstart)
 - [Tutorial: your first cited answer](#tutorial-your-first-cited-answer)
@@ -67,6 +68,16 @@ Everything is deliberately lean: no tracing stack, no separate eval dashboard. A
 **Live demo:** <https://xrag.duckdns.org> · [Swagger](https://xrag.duckdns.org/docs) · [Health](https://xrag.duckdns.org/health)
 
 > Demo only: users `LUFFY` / `ZORO`, password `password`; the corpus is a sample PDF. Do not upload confidential documents. The EC2 instance is stopped when not demoing.
+
+---
+
+## Screenshots
+
+| Login | Chat with citations |
+|---|---|
+| ![X-RAG login screen](screenshots/login.png) | ![X-RAG chat with a cited answer](screenshots/chat.png) |
+
+Captured from the live demo at <https://xrag.duckdns.org>. The chat view reopens a saved conversation, so no new documents or queries were added.
 
 ---
 
@@ -672,6 +683,7 @@ docker-compose.yml    xrag + qdrant + caddy
 Caddyfile             HTTPS reverse proxy for the AWS demo
 deploy.env.example    Compose variables template (DOMAIN, EBS paths)
 LICENSE               MIT
+screenshots/          README reference captures (login, chat)
 SPEC.md               product spec as a completion checklist
 ```
 

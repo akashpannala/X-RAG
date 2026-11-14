@@ -17,6 +17,7 @@ frontend/stitch_pixel_perfect_page_clone/
 *.pdf
 banner.png
 logo.png
+screenshots/
 README.md
 SPEC.md
 tests/
