@@ -1,4 +1,8 @@
-"""L20: SQLite answer cache (cosine>0.96 short-circuit) + embedding LRU.
+"""L20: answer cache (cosine>0.96 short-circuit) + embedding LRU.
+
+Storage is Postgres/Supabase in deployment (same managed DB as metadata);
+SQLite is used only when ``DB_PROVIDER=sqlite`` (unit tests). There is no
+silent fallback between backends.
 
 Keys are `<queryhash>|<mode>|<groups>` so each role/mode partition is
 isolated; clear() runs on every ingest so permission changes can't leak
@@ -7,13 +11,14 @@ through stale rows.
 import functools
 import hashlib
 import json
-import sqlite3
-from pathlib import Path
+import logging
 
 import numpy as np
 
 from backend.config import settings
 from backend.l06_embedding.bge import get_embeddings
+
+_logger = logging.getLogger(__name__)
 
 SCHEMA = """CREATE TABLE IF NOT EXISTS answer_cache(
   key TEXT PRIMARY KEY, answer TEXT, cites_json TEXT, qvec_json TEXT)"""
@@ -21,14 +26,32 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS answer_cache(
 _PARTITION_CAP = 500  # per <mode>|<groups> partition, not global
 
 
+def _is_pg() -> bool:
+    return settings.is_postgres
+
+
+def _ph() -> str:
+    return "%s" if _is_pg() else "?"
+
+
+def _rowid() -> str:
+    return "ctid" if _is_pg() else "rowid"
+
+
+def _escape_like(value: str) -> str:
+    return value.replace("%", r"\%").replace("_", r"\_")
+
+
 def _conn():
-    # DB_PATH is empty in postgres deployments — sqlite3.connect("") would open a
-    # private temp DB that vanishes on close, so the cache could never hit.
-    path = settings.db_path or "data/answer_cache.db"
-    if path != ":memory:":
-        Path(path).parent.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(path)
-    c.execute(SCHEMA)
+    from backend.l08_freshness.store import meta_conn
+
+    c = meta_conn(settings.db_path)
+    try:
+        c.execute(SCHEMA)
+        c.commit()
+    except Exception:
+        c.close()
+        raise
     return c
 
 
@@ -56,12 +79,10 @@ def lookup(query: str, mode: str, groups: list[str]) -> tuple[str, list[str]] | 
     qv = np.array(embed_cached(query))
     con = _conn()
     try:
-        # filter in SQL by the partition suffix — exact tail match, not endswith, so a
-        # group name can't collide with another at a delimiter boundary
         rows = con.execute(
-            "SELECT key, answer, cites_json, qvec_json FROM answer_cache "
-            "WHERE key LIKE ? ESCAPE '\\'",
-            (f"%{suffix.replace('%', r'\%').replace('_', r'\_')}",),
+            f"SELECT key, answer, cites_json, qvec_json FROM answer_cache "
+            f"WHERE key LIKE {_ph()} ESCAPE '\\'",
+            (f"%{_escape_like(suffix)}",),
         ).fetchall()
     finally:
         con.close()
@@ -79,19 +100,22 @@ def lookup(query: str, mode: str, groups: list[str]) -> tuple[str, list[str]] | 
 def store(query: str, mode: str, groups: list[str], answer: str, cites: list[str]) -> None:
     con = _conn()
     try:
+        ph = _ph()
         con.execute(
-            "INSERT OR REPLACE INTO answer_cache(key, answer, cites_json, qvec_json) VALUES (?,?,?,?)",
-            (_key(query, mode, groups), answer,
-             json.dumps(cites), json.dumps(embed_cached(query))),
+            f"INSERT INTO answer_cache(key, answer, cites_json, qvec_json) "
+            f"VALUES ({ph},{ph},{ph},{ph}) "
+            "ON CONFLICT (key) DO UPDATE SET "
+            "answer=EXCLUDED.answer, cites_json=EXCLUDED.cites_json, "
+            "qvec_json=EXCLUDED.qvec_json",
+            (_key(query, mode, groups), answer, json.dumps(cites), json.dumps(embed_cached(query))),
         )
-        # evict per-partition: keep the most recent _PARTITION_CAP rows for this mode|groups
         suffix = _suffix(mode, groups)
+        pattern = f"%{_escape_like(suffix)}%"
         con.execute(
-            "DELETE FROM answer_cache WHERE key LIKE ? ESCAPE '\\' "
-            "AND rowid NOT IN (SELECT rowid FROM answer_cache WHERE key LIKE ? ESCAPE '\\' "
-            "ORDER BY rowid DESC LIMIT ?)",
-            (f"%{suffix.replace('%', r'\%').replace('_', r'\_')}",
-             f"%{suffix.replace('%', r'\%').replace('_', r'\_')}", _PARTITION_CAP),
+            f"DELETE FROM answer_cache WHERE key LIKE {ph} ESCAPE '\\' "
+            f"AND key NOT IN (SELECT key FROM answer_cache WHERE key LIKE {ph} ESCAPE '\\' "
+            f"ORDER BY {_rowid()} DESC LIMIT {ph})",
+            (pattern, pattern, _PARTITION_CAP),
         )
         con.commit()
     finally:

@@ -1,10 +1,11 @@
 """L4-full: all eight chunking strategies (PRD).
 
 Basic (always): recursive + table/code (splitter.py). Full (enrich=true):
-late (BGE-M3 long-ctx pooled), semantic (cosine breakpoints), parent
-(big section + child refs), window (sentence ± N), propositional (LLM
-atomic claims), contextual (LLM header per chunk). Propositional/contextual
-cost LLM calls — that is what enrich=true buys.
+late (plain remote-safe split; no local token pooling), semantic (remote
+embedding cosine breakpoints), parent (big section + child refs), window
+(sentence ± N), propositional (LLM atomic claims), contextual (LLM header
+per chunk). Propositional/contextual cost LLM calls — that is what
+enrich=true buys.
 """
 import logging
 import re
@@ -18,47 +19,13 @@ _sent = re.compile(r"(?<=[.!?])\s+")
 
 
 def late_chunks(text: str, size: int = 2000):
-    """Late Chunking: embed whole doc with BGE-M3 long ctx then mean-pool per chunk span.
-    Returns (texts, pooled_vectors) where pooled_vectors are the late-pooled embeddings.
-    Remote embed (EMBED_URL/choreo) has no tokenizer — returns (parts, None).
+    """Late Chunking, remote-safe: plain split without local token pooling.
+
+    Local BGE token-level pooling needs the local model/tokenizer, which is
+    removed on ``aws-deploy``. Returns ``(parts, None)`` so callers compute
+    vectors through the remote embedding API.
     """
     parts = _base.split_text(text)
-    if len(parts) < 2:
-        return parts, None
-    # remote has no tokenizer/model — skip heavy work
-    from backend.config import settings, _resolve_embed_url
-
-    if _resolve_embed_url() or settings.embed_provider == "choreo":
-        _logger.info("late_chunks: remote embed, skipping token-pool, plain split")
-        return parts, None
-    try:
-        from backend.l06_embedding.bge import get_embeddings
-
-        st = get_embeddings(settings.embed_model)._client  # SentenceTransformer, correct is _client not .client
-        tok = st.tokenizer
-        # local-only: whole-doc word_embeddings then span mean-pool
-        enc = tok(text[:8192 * 4], return_tensors="pt", truncation=True)
-        import torch
-
-        with torch.no_grad():
-            out = st[0].auto_model.embeddings.word_embeddings(enc["input_ids"])
-        offsets, acc = [], 0
-        for p in parts:
-            acc += len(p)
-            offsets.append(acc)
-        spans = tok(text[:8192 * 4], return_offsets_mapping=True)["offset_mapping"]
-        pooled, start = [], 0
-        for end_char in offsets:
-            idx = [i for i, (s, e) in enumerate(spans) if s >= 0 and e <= end_char and i >= start]
-            if idx:
-                pooled.append(out[0, idx].mean(0))
-                start = idx[-1] + 1
-        if len(pooled) == len(parts):
-            import numpy as np
-            pooled_arr = [p.cpu().numpy() for p in pooled]
-            return parts, pooled_arr
-    except Exception as e:
-        _logger.warning("late_chunks fallback to plain split: %s", e)
     return parts, None
 
 

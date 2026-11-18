@@ -52,7 +52,10 @@ def main(port: int | None = None) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "seed":
+    if len(sys.argv) > 1 and sys.argv[1] == "check":
+        setup_logging()
+        sys.exit(0 if check_requirements() else 1)
+    elif len(sys.argv) > 1 and sys.argv[1] == "seed":
         seed()
     else:
         arg_port = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else None

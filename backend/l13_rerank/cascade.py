@@ -1,11 +1,27 @@
-"""L14-full: cascade MiniLM → Jina/BGE-reranker/MiniLM → RankGPT-listwise + MMR diversity.
+"""L14-full: cascade remote rerank → RankGPT-listwise + MMR diversity.
 
-Quick: MiniLM → top-5 (unchanged). Deep: MiniLM 50→30 → Jina/BGE/MiniLM 30→10 →
-RankGPT-listwise 10→5 → MMR interleave. Jina API preferred, falls back to local BGE → MiniLM.
+Quick: remote rerank → top-5. Deep: remote rerank 50→30 → remote rerank
+30→10 → RankGPT-listwise 10→5 → MMR interleave. The Jina API is the only
+reranker; there is no local BGE/MiniLM fallback.
 """
-from backend.config import settings
-from backend.l13_rerank.minilm import rerank as minilm_rerank
+import logging
+
 from backend.l13_rerank.provider import get_reranker_provider
+
+_logger = logging.getLogger(__name__)
+
+
+def rerank_api(query: str, hits: list[dict], top_n: int) -> list[dict]:
+    """Score candidates with the remote reranker and return the top-n."""
+    if not hits:
+        return []
+    provider = get_reranker_provider()
+    ranked = provider.rerank(query, [h["text"] for h in hits], min(top_n, len(hits)))
+    out: list[dict] = []
+    for idx, score in ranked:
+        if 0 <= idx < len(hits):
+            out.append({**hits[idx], "score": float(score)})
+    return out
 
 
 def rankgpt_listwise(query: str, hits: list[dict], top_n: int) -> list[dict]:
@@ -22,8 +38,9 @@ def rankgpt_listwise(query: str, hits: list[dict], top_n: int) -> list[dict]:
             f"No trailing punctuation, just digits separated by commas.\n"
             f"Question: {query}\nPassages:\n{numbered}")
         text = msg.content if isinstance(msg.content, str) else str(msg.content)
-    except Exception:
-        return hits[:top_n]  # LLM unavailable → keep MiniLM/BGE order, don't crash
+    except Exception as e:
+        _logger.warning("RankGPT LLM rerank failed — keeping reranker order: %s", e)
+        return hits[:top_n]
     order = []
     for tok in text.replace(",", " ").replace(".", " ").split():
         if tok.strip().isdigit() and int(tok.strip()) < len(hits) and int(tok.strip()) not in order:
@@ -54,36 +71,35 @@ def mmr(query_vec: list[float], hits: list[dict], vecs: list[list[float]],
     return [hits[i] for i in picked]
 
 
-def cascade(query: str, hits: list[dict], mode: str) -> list[dict]:
-    if mode == "quick" or not hits:
-        return minilm_rerank(query, hits, 5)
-    stage1 = minilm_rerank(query, hits, min(30, len(hits)))
-    # Stage 2: Jina API → Local BGE-reranker → MiniLM fallback
-    provider = get_reranker_provider()
-    top_n = min(10, len(stage1))
-    try:
-        docs = [h["text"] for h in stage1]
-        ranked = provider.rerank(query, docs, top_n)
-        stage2 = [stage1[idx] for idx, _ in ranked]
-        for (idx, score), hit in zip(ranked, stage2):
-            hit["score"] = float(score)
-    except Exception:
-        stage2 = stage1[:top_n]  # fallback to MiniLM order
-    try:
-        final = rankgpt_listwise(query, stage2, 5)
-    except Exception:
-        final = stage2[:5]
-    try:
-        from backend.l06_embedding.bge import get_embeddings
-        from backend.config import settings
-
-        vecs = get_embeddings(settings.embed_model).embed_documents([h["text"][:1000] for h in final])
-        qv = get_embeddings(settings.embed_model).embed_query(query)
-        out = mmr(qv, final, vecs, len(final))
-    except Exception:
-        out = final
-    # write a normalized position score (1.0..~0) so downstream confident() has a
-    # consistent 0-1 scale regardless of which reranker produced the ranking
+def _normalize_scores(out: list[dict]) -> None:
+    """Write a normalized position score (1.0..~0) on the reranker 0-1 scale."""
     for i, h in enumerate(out):
-        h["score"] = h.get("score", 1.0) if i == 0 else max(h.get("score", 0.0), (len(out) - i) / len(out))
+        h["score"] = h.get("score", 1.0) if i == 0 else max(
+            h.get("score", 0.0), (len(out) - i) / len(out)
+        )
+
+
+def cascade(query: str, hits: list[dict], mode: str) -> list[dict]:
+    if not hits:
+        return hits
+    if mode == "quick":
+        out = rerank_api(query, hits, 5)
+        _normalize_scores(out)
+        return out
+
+    stage1 = rerank_api(query, hits, min(30, len(hits)))
+    stage2 = rerank_api(query, stage1, min(10, len(stage1)))
+    final = rankgpt_listwise(query, stage2, 5)
+    try:
+        from backend.config import settings
+        from backend.l06_embedding.bge import get_embeddings
+
+        emb = get_embeddings(settings.embed_model)
+        vecs = emb.embed_documents([h["text"][:1000] for h in final])
+        qv = emb.embed_query(query)
+        out = mmr(qv, final, vecs, len(final))
+    except Exception as e:
+        _logger.warning("MMR skipped (remote embedding unavailable) — keeping order: %s", e)
+        out = final
+    _normalize_scores(out)
     return out

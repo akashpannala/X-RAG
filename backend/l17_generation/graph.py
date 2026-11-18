@@ -1,9 +1,10 @@
 """RAG graph — guard → transform → retrieve (ACL) → rerank → assemble → generate.
 
-Quick: raw query, dense-30 → MiniLM → top-5. Deep: multi-query + HyDE +
-step-back + decomposition → dense-50 each → RRF fuse → MiniLM → top-10.
-Sync invoke, cache wraps outside.
+Quick: raw query, dense-30 → remote rerank → top-5. Deep: multi-query + HyDE +
+step-back + decomposition → dense-50 each → RRF fuse → remote rerank →
+top-10. Sync invoke, cache wraps outside. No local model fallbacks.
 """
+import logging
 from typing import TypedDict
 
 from backend import l07_storage as store
@@ -19,6 +20,8 @@ from backend.l14_security.nemo import screen_nemo
 from backend.l16_assembly.prompt import assemble
 from backend.l17_generation.llm import get_llm
 from backend.l19_cache import cache as qcache
+
+_logger = logging.getLogger(__name__)
 
 
 class RAGState(TypedDict, total=False):
@@ -78,14 +81,14 @@ def retrieve(s: RAGState) -> dict:
         from backend.L06_sparse.bm25 import search as bm25_search
 
         lists.append(bm25_search(s["query"], 20, groups))
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.warning("BM25 leg failed — continuing without it: %s", e)
     try:
         from backend.L06_sparse.splade import search as splade_search
 
         lists.append(splade_search(s["query"], 20, groups))
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.warning("SPLADE leg failed — continuing without it: %s", e)
     return {"hits": rrf_fuse([l for l in lists if l])[:n]}
 
 
@@ -162,7 +165,11 @@ def answer(query: str, top_k: int = 5, groups: list[str] | None = None,
     """
     groups = groups or []
     mode = resolve(groups, mode_override)
-    hit = qcache.lookup(query, mode, groups)
+    try:
+        hit = qcache.lookup(query, mode, groups)
+    except Exception as e:
+        _logger.warning("answer cache lookup failed — continuing uncached: %s", e)
+        hit = None
     if hit is not None:
         return hit[0], hit[1], [], mode, True, {"labels": [], "supported_ratio": -1.0}
     state = {"query": query, "top_k": top_k, "groups": groups,
@@ -175,19 +182,24 @@ def answer(query: str, top_k: int = 5, groups: list[str] | None = None,
             return answer(retry_q, top_k, groups, mode_override, user_id, True)
     text, cites = out.get("answer", ""), out.get("cites", [])
     if not out.get("blocked"):
-        qcache.store(query, out.get("mode", mode), groups, text, cites)
+        try:
+            qcache.store(query, out.get("mode", mode), groups, text, cites)
+        except Exception as e:
+            _logger.warning("answer cache store failed — answer still returned: %s", e)
         if user_id:
             try:
                 from backend.l14_security.auth import _ph_n
 
                 con = meta_conn(settings.db_path)
-                ph = _ph_n(con, 7)
-                con.execute(
-                    f"INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json, citations_json) VALUES ({ph})",
-                    (user_id, query, text, out.get("mode", mode), 0.0, jdump(out.get("contexts", [])), jdump(cites)))
-                con.commit()
-                con.close()
-            except Exception:
-                pass
+                try:
+                    ph = _ph_n(con, 7)
+                    con.execute(
+                        f"INSERT INTO conversations(user_id, query, answer, mode, score, contexts_json, citations_json) VALUES ({ph})",
+                        (user_id, query, text, out.get("mode", mode), 0.0, jdump(out.get("contexts", [])), jdump(cites)))
+                    con.commit()
+                finally:
+                    con.close()
+            except Exception as e:
+                _logger.warning("conversation persistence failed: %s", e)
     return (text, cites, out.get("contexts", []), out.get("mode", mode), False,
             out.get("verification", {"labels": [], "supported_ratio": -1.0}))

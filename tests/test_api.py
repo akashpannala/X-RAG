@@ -56,8 +56,10 @@ def test_health_ok(client):
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["vector_store"] in ("pgvector", "qdrant")
+    assert body["vector_store"] == "pgvector"
+    assert "qdrant" not in body
     assert body["llm"]
+    assert body["embed"] and body["rerank"]
 
 
 def test_telemetry_route_removed(client):

@@ -83,12 +83,15 @@ def test_search_acl_where_clause(pg, monkeypatch):
     assert "public" in params
 
 
-def test_search_error_returns_empty(pg, monkeypatch):
+def test_search_error_is_explicit(pg, monkeypatch):
+    from backend.errors import DatabaseError
+
     emb = MagicMock()
     emb.embed_query.return_value = [0.1] * 4
     monkeypatch.setattr(pg, "get_embeddings", lambda m: emb)
 
     conn, cur = _mock_conn()
-    cur.fetchall.side_effect = RuntimeError("boom")
+    cur.execute.side_effect = RuntimeError("boom")
     monkeypatch.setattr(pg, "_conn", lambda: conn)
-    assert pg.search("q", 5, None) == []
+    with pytest.raises(DatabaseError):
+        pg.search("q", 5, None)

@@ -4,7 +4,11 @@ Recent user queries from SQLite become memory context so follow-ups like
 "and the second one?" resolve. Full MemoRAG global-memory pre-training is
 Phase 4 hardware territory; this is the online half that matters now.
 """
+import logging
+
 from backend.l08_freshness.store import meta_conn
+
+_logger = logging.getLogger(__name__)
 
 
 def recent_queries(user_id: int, n: int = 5) -> list[str]:
@@ -18,7 +22,8 @@ def recent_queries(user_id: int, n: int = 5) -> list[str]:
             (user_id, n),
         ).fetchall()
         return [r[0] for r in reversed(rows)]
-    except Exception:
+    except Exception as e:
+        _logger.warning("recent_queries unavailable: %s", e)
         return []
     finally:
         con.close()

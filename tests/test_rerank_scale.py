@@ -1,38 +1,51 @@
-"""Rerank score scale: minilm.rerank must emit 0-1 scores that confident() accepts."""
-from backend.l13_rerank import minilm
+"""Remote rerank cascade: 0-1 scores, no local MiniLM, confidence still applies."""
+import importlib
+
+cascade = importlib.import_module("backend.l13_rerank.cascade")
 from backend.l14_security.injection import confident
 
 
-class FakeCE:
-    def __init__(self, logits):
-        self.logits = logits
+class FakeProvider:
+    def __init__(self, ordered_scores=None):
+        self.ordered_scores = ordered_scores
 
-    def predict(self, pairs):
-        assert len(pairs) == len(self.logits)
-        return self.logits
+    def rerank(self, query, docs, top_n):
+        if self.ordered_scores is not None:
+            return list(zip(range(len(docs)), self.ordered_scores))[:top_n]
+        n = min(top_n, len(docs))
+        return [(i, 1.0 - i * 0.1) for i in range(n)]
 
 
-def test_rerank_writes_sigmoid_scores(monkeypatch):
-    monkeypatch.setattr(minilm, "get_reranker", lambda *a, **k: FakeCE([-3.0, 0.0, 2.0]))
+def test_rerank_api_preserves_provider_order(monkeypatch):
     hits = [{"text": "a"}, {"text": "b"}, {"text": "c"}]
-    out = minilm.rerank("q", hits, 3)
-    assert [h["text"] for h in out] == ["c", "b", "a"]  # order preserved
-    scores = [h["score"] for h in out]
-    assert all(0.0 <= s <= 1.0 for s in scores)
-    assert abs(out[0]["score"] - 0.8808) < 0.001  # sigmoid(2)
-    assert abs(out[1]["score"] - 0.5) < 0.001  # sigmoid(0)
-    assert abs(out[2]["score"] - 0.0474) < 0.001  # sigmoid(-3)
+    monkeypatch.setattr(cascade, "get_reranker_provider",
+                        lambda: FakeProvider([0.1, 0.9, 0.4]))
+    out = cascade.rerank_api("q", hits, 3)
+    assert [h["text"] for h in out] == ["a", "b", "c"]
+    assert out[0]["score"] == 0.1
+    assert out[1]["score"] == 0.9
 
 
-def test_gate_passes_for_relevant_hit(monkeypatch):
-    """A relevant pair (logit ~ -0.02, i.e. ~49%) must clear confident()."""
-    monkeypatch.setattr(minilm, "get_reranker", lambda *a, **k: FakeCE([-0.025]))
-    out = minilm.rerank("q", [{"text": "vacation policy"}], 5)
+def test_quick_cascade_returns_five_and_normalizes(monkeypatch):
+    hits = [{"text": f"t{i}"} for i in range(10)]
+    monkeypatch.setattr(cascade, "get_reranker_provider", lambda: FakeProvider())
+    out = cascade.cascade("q", hits, "quick")
+    assert len(out) == 5
+    assert all(0.0 <= h["score"] <= 1.0 for h in out)
     assert confident(out)
 
 
-def test_gate_still_blocks_irrelevant_hits(monkeypatch):
-    """Logit -6 (~0.25%) must still be refused."""
-    monkeypatch.setattr(minilm, "get_reranker", lambda *a, **k: FakeCE([-6.0]))
-    out = minilm.rerank("q", [{"text": "noise"}], 5)
-    assert not confident(out)
+def test_deep_cascade_uses_remote_only(monkeypatch):
+    hits = [{"text": f"t{i}"} for i in range(50)]
+    monkeypatch.setattr(cascade, "get_reranker_provider", lambda: FakeProvider())
+    monkeypatch.setattr(cascade, "rankgpt_listwise", lambda q, h, n: h[:n])
+    monkeypatch.setattr(cascade, "mmr", lambda qv, h, vecs, n: h[:n])
+    out = cascade.cascade("q", hits, "deep")
+    assert len(out) == 5
+    assert all(0.0 <= h["score"] <= 1.0 for h in out)
+    assert confident(out)
+
+
+def test_cascade_empty_hits():
+    assert cascade.cascade("q", [], "quick") == []
+    assert cascade.cascade("q", [], "deep") == []

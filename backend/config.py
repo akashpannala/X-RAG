@@ -1,6 +1,18 @@
-"""Backend settings + check_requirements(). Checks only — never installs."""
-from pathlib import Path
+"""Backend settings + check_requirements(). Checks only — never installs.
+
+On the ``aws-deploy`` branch this is deliberately API-only: remote LLM,
+remote embeddings, remote reranker, and Postgres/Supabase pgvector. Local
+providers (Ollama/llama.cpp, BGE embeddings, MiniLM/BGE rerankers, SQLite
+metadata, Qdrant) are rejected so there is no silent fallback.
+"""
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from backend.errors import classify_db_error, classify_provider_error, is_db_missing
+
+_API_PROVIDERS = ("groq", "openai", "anthropic")
+_EMBED_PROVIDERS = ("jina", "voyage", "cohere")
+_RERANK_PROVIDERS = ("jina",)
+_SQL_PROVIDERS = ("postgres", "supabase")
 
 
 class Settings(BaseSettings):
@@ -9,30 +21,27 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8001
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
-    # --- LLM ---
+    # --- LLM (remote only) ---
     llm_provider: str = "groq"
     llm_base_url: str = ""
     llm_model: str = "openai/gpt-oss-20b"
     llm_api_key: str = ""
-    # --- Embeddings ---
-    embed_provider: str = "bge"
+    # --- Embeddings (remote only) ---
+    embed_provider: str = "jina"
     embed_base_url: str = ""
-    embed_model: str = "BAAI/bge-m3"
+    embed_model: str = "jina-embeddings-v3"
     embed_api_key: str = ""
-    # --- Rerankers ---
-    rerank_provider: str = "minilm"      # minilm | jina | bge
+    # --- Reranker (remote only) ---
+    rerank_provider: str = "jina"
     rerank_base_url: str = "https://api.jina.ai/v1"
     rerank_model: str = "jina-reranker-m0"
     rerank_api_key: str = ""
-    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-    bge_reranker_model: str = "BAAI/bge-reranker-v2-m3"
-    # --- Vector Store (Qdrant only) ---
-    vector_base_url: str = "http://localhost:6333"
-    vector_api_key: str = ""
+    # --- Vector Store (pgvector only) ---
     vector_collection: str = "offline_rag"
-    # --- Database (SQL) ---
-    db_provider: str = "sqlite"
+    # --- Database (Postgres/Supabase only for deployment) ---
+    db_provider: str = "supabase"
     db_url: str = ""
+    # SQLite is retained for the unit-test suite only; it is never a fallback.
     db_path: str = "data/meta.db"
     # --- Storage / Auth ---
     upload_dir: str = "data/uploads"
@@ -40,143 +49,140 @@ class Settings(BaseSettings):
     jwt_expire_min: int = 480
     default_mode_by_group: str = '{"hr": "quick", "eng": "deep", "public": "quick"}'
 
+    @property
+    def is_postgres(self) -> bool:
+        return (self.db_provider or "").strip().lower() in _SQL_PROVIDERS
+
+
 settings = Settings()
 
 
 def _resolve_llm_url() -> str:
-    """Resolve LLM base URL with local defaults."""
-    url = settings.llm_base_url.strip()
-    if not url:
-        if settings.llm_provider == "ollama":
-            return "http://localhost:11434"
-        if settings.llm_provider == "llama.cpp":
-            return "http://localhost:8080/v1"
-    if settings.llm_provider == "llama.cpp" and not url.endswith("/v1"):
-        return url.rstrip("/") + "/v1"
-    return url
+    """Resolve the remote LLM base URL (custom gateways only)."""
+    return settings.llm_base_url.strip()
 
 
 def _resolve_embed_url() -> str:
-    """Resolve embedding base URL."""
+    """Resolve embedding base URL. Only remote providers are supported."""
     url = settings.embed_base_url.strip()
-    if not url and settings.embed_provider in ("jina", "voyage", "cohere", "choreo"):
-        return "https://api.jina.ai/v1"  # default to Jina
-    return url
-
-
-def _resolve_rerank_url() -> str:
-    """Resolve reranker base URL with default."""
-    url = settings.rerank_base_url.strip()
-    if not url and settings.rerank_provider == "jina":
+    if not url and settings.embed_provider.lower() == "jina":
         return "https://api.jina.ai/v1"
     return url
 
 
-def _hf_cached(repo: str) -> bool:
-    """True if a local HuggingFace snapshot of repo has weights on disk."""
-    base = Path.home() / ".cache/huggingface/hub" / f"models--{repo.replace('/', '--')}" / "snapshots"
-    if not base.is_dir():
-        return False
-    return any(
-        (s / f).exists()
-        for s in base.iterdir()
-        for f in ("pytorch_model.bin", "model.safetensors")
-    )
+def _resolve_rerank_url() -> str:
+    """Resolve the remote reranker base URL."""
+    url = settings.rerank_base_url.strip()
+    if not url and settings.rerank_provider.lower() == "jina":
+        return "https://api.jina.ai/v1"
+    return url
+
+
+def _provider_error(kind: str, exc: BaseException, provider: str, model: str = "") -> str:
+    err = classify_provider_error(exc, kind=kind, provider=provider, model=model)
+    return str(err)
+
+
+def _db_error(exc: BaseException) -> str:
+    return str(classify_db_error(exc))
 
 
 def check_requirements() -> bool:
-    """Verify providers from .env. Works local / ssh VPS / online — no Docker."""
+    """Verify remote providers + Postgres/pgvector. Fatal on any failure."""
     import httpx
+    import psycopg
 
     rows: list[tuple[str, bool, str]] = []
 
-    # LLM — configured provider only
-    provider = settings.llm_provider.lower()
-    if provider == "groq":
-        ok = bool(settings.llm_api_key)
-        rows.append(("Groq key", ok, settings.llm_model if ok else "set LLM_API_KEY in .env"))
-    elif provider in ("openai", "anthropic"):
-        ok = bool(settings.llm_api_key)
-        rows.append((provider.capitalize(), ok, settings.llm_model if ok else "set LLM_API_KEY in .env"))
-    elif provider in ("ollama", "llama.cpp"):
-        url = _resolve_llm_url()
-        path = "/api/tags" if provider == "ollama" else "/models"
-        try:
-            httpx.get(f"{url}{path}", timeout=5).raise_for_status()
-            rows.append((provider, True, url))
-        except Exception:
-            rows.append((provider, False, f"{provider} not at {url} — start server"))
+    # --- LLM ---
+    provider = (settings.llm_provider or "").strip().lower()
+    if provider not in _API_PROVIDERS:
+        rows.append((f"LLM ({provider or 'unset'})", False,
+                     f"aws-deploy requires one of: {', '.join(_API_PROVIDERS)}"))
+    elif not settings.llm_api_key:
+        rows.append((f"LLM ({provider})", False, "set LLM_API_KEY in .env"))
     else:
-        rows.append((f"LLM ({provider})", False, f"unknown provider: {provider}"))
+        rows.append((f"LLM ({provider})", True, settings.llm_model))
 
-    # Embeddings — configured provider only
+    # --- Embeddings ---
+    embed_provider = (settings.embed_provider or "").strip().lower()
     embed_url = _resolve_embed_url()
-    if settings.embed_provider == "bge" and not embed_url:
-        cached = _hf_cached("BAAI/bge-m3")
-        rows.append(("BGE-M3", cached, ".venv/bin/hf download BAAI/bge-m3" if not cached else "cached"))
+    if embed_provider not in _EMBED_PROVIDERS:
+        rows.append((f"Embed ({embed_provider or 'unset'})", False,
+                     f"aws-deploy requires one of: {', '.join(_EMBED_PROVIDERS)}"))
+    elif not embed_url:
+        rows.append((f"Embed ({embed_provider})", False, "set EMBED_BASE_URL in .env"))
+    elif not settings.embed_api_key:
+        rows.append((f"Embed ({embed_provider})", False, "set EMBED_API_KEY in .env"))
     else:
-        test_url = (embed_url or "https://api.jina.ai/v1").rstrip("/")
-        headers = {"Authorization": f"Bearer {settings.embed_api_key}"} if settings.embed_api_key else {}
         try:
-            httpx.post(
-                f"{test_url}/embeddings",
-                json={"input": ["test"], "model": settings.embed_model},
-                headers=headers,
+            endpoint = (f"{embed_url.rstrip('/')}/embed" if embed_provider == "cohere"
+                        else f"{embed_url.rstrip('/')}/embeddings")
+            payload = ({"texts": ["test"], "model": settings.embed_model,
+                        "input_type": "search_query"}
+                       if embed_provider == "cohere"
+                       else {"input": ["test"], "model": settings.embed_model})
+            r = httpx.post(
+                endpoint,
+                json=payload,
+                headers={"Authorization": f"Bearer {settings.embed_api_key}"},
                 timeout=30,
-            ).raise_for_status()
-            rows.append((f"Embed ({settings.embed_provider})", True, test_url))
-        except Exception:
-            rows.append((f"Embed ({settings.embed_provider})", False, f"EMBED_BASE_URL={embed_url or 'not set'} unreachable"))
+            )
+            r.raise_for_status()
+            rows.append((f"Embed ({embed_provider} {settings.embed_model})", True, embed_url))
+        except Exception as e:
+            rows.append((f"Embed ({embed_provider} {settings.embed_model})", False,
+                         _provider_error("Embedding", e, embed_provider, settings.embed_model)))
 
-    # Reranker — configured provider only
-    rerank_provider = settings.rerank_provider.lower()
-    if rerank_provider == "jina":
-        if not settings.rerank_api_key:
-            rows.append(("Rerank (Jina)", False, "RERANK_API_KEY not set"))
+    # --- Reranker ---
+    rerank_provider = (settings.rerank_provider or "").strip().lower()
+    if rerank_provider not in _RERANK_PROVIDERS:
+        rows.append((f"Rerank ({rerank_provider or 'unset'})", False,
+                     "aws-deploy requires RERANK_PROVIDER=jina"))
+    elif not settings.rerank_api_key:
+        rows.append(("Rerank (jina)", False, "set RERANK_API_KEY in .env"))
+    else:
+        try:
+            r = httpx.post(
+                f"{_resolve_rerank_url().rstrip('/')}/rerank",
+                json={"query": "test", "documents": ["test"], "top_n": 1,
+                      "model": settings.rerank_model},
+                headers={"Authorization": f"Bearer {settings.rerank_api_key}"},
+                timeout=15,
+            )
+            r.raise_for_status()
+            rows.append((f"Rerank (jina {settings.rerank_model})", True, _resolve_rerank_url()))
+        except Exception as e:
+            rows.append((f"Rerank (jina {settings.rerank_model})", False,
+                         _provider_error("Rerank", e, "jina", settings.rerank_model)))
+
+    # --- Database + pgvector ---
+    if not settings.is_postgres:
+        rows.append((f"Database ({settings.db_provider or 'unset'})", False,
+                     "aws-deploy requires DB_PROVIDER=postgres|supabase with a DB_URL"))
+    elif not settings.db_url:
+        rows.append(("Postgres", False, "set DB_URL in .env"))
+    else:
+        try:
+            conn = psycopg.connect(settings.db_url, connect_timeout=5)
+        except Exception as e:
+            label = "Database does not exist" if is_db_missing(e) else "Postgres"
+            rows.append((label, False, _db_error(e)))
         else:
             try:
-                httpx.post(
-                    f"{_resolve_rerank_url().rstrip('/')}/rerank",
-                    json={"query": "test", "documents": ["test"], "top_n": 1, "model": settings.rerank_model},
-                    headers={"Authorization": f"Bearer {settings.rerank_api_key}"},
-                    timeout=10,
-                ).raise_for_status()
-                rows.append((f"Rerank (Jina {settings.rerank_model})", True, _resolve_rerank_url()))
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                    cur.execute(
+                        "SELECT 1 FROM pg_extension WHERE extname = 'vector'")
+                    has_vector = cur.fetchone() is not None
+                rows.append(("Postgres", True, settings.db_url.split("@")[-1][:40]))
+                rows.append(("pgvector extension", has_vector,
+                             "CREATE EXTENSION vector" if not has_vector else "installed"))
             except Exception as e:
-                rows.append(("Rerank (Jina)", False, f"Jina rerank API unreachable ({e})"))
-    elif rerank_provider == "bge":
-        cached = _hf_cached("BAAI/bge-reranker-v2-m3")
-        rows.append(("Rerank (BGE)", cached, ".venv/bin/hf download BAAI/bge-reranker-v2-m3" if not cached else "cached"))
-    else:
-        rows.append(("Rerank (MiniLM)", True, "local cross-encoder"))
-
-    # Database + vector store (runtime: Postgres/pgvector, falls back to Qdrant — mirrors l07)
-    pg_ok = False
-    if settings.db_provider in ("postgres", "supabase") and settings.db_url:
-        try:
-            import psycopg
-
-            conn = psycopg.connect(settings.db_url, connect_timeout=5)
-            conn.close()
-            rows.append(("Postgres", True, settings.db_url[:40] + "..."))
-            pg_ok = True
-        except Exception as e:
-            rows.append(("Postgres", False, f"DB_URL unreachable ({e})"))
-    else:
-        rows.append(("SQLite", True, settings.db_path))
-    if not pg_ok:
-        try:
-            from qdrant_client import QdrantClient
-
-            kwargs = {"url": settings.vector_base_url}
-            if settings.vector_api_key:
-                kwargs["api_key"] = settings.vector_api_key
-            QdrantClient(**kwargs).get_collections()
-            rows.append(("Qdrant", True, settings.vector_base_url))
-        except Exception as e:
-            rows.append(("Qdrant", False, f"VECTOR_BASE_URL={settings.vector_base_url} unreachable ({e})"))
+                rows.append(("Postgres", False, _db_error(e)))
+            finally:
+                conn.close()
 
     for name, ok, hint in rows:
         print(f"{'ok  ' if ok else 'FAIL'} {name}" + ("" if ok else f" — {hint}"))
-    fatal = [n for n, ok, _ in rows if not ok and n in ("Groq key", "Ollama", "llama.cpp", "Qdrant")]
-    return not fatal
+    return all(ok for _, ok, _ in rows)

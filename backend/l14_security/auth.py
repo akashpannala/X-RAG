@@ -117,7 +117,8 @@ def current_user(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> User
         p = jwt.decode(creds.credentials, settings.jwt_secret, algorithms=["HS256"])
     except Exception:
         raise HTTPException(401, "invalid/expired token")
-    # deleted-user / stale-revocation guard: re-check the user still exists
+    # deleted-user / stale-revocation guard: re-check the user still exists.
+    # No token-claims fallback: an unreachable database is an explicit 503.
     uid = p.get("sub")
     try:
         from backend.l08_freshness.store import meta_conn
@@ -130,14 +131,14 @@ def current_user(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> User
             ).fetchone()
         finally:
             con.close()
-        if not row:
-            raise HTTPException(401, "user no longer exists")
-        return User(id=int(uid), username=row[0], groups=jload(row[1]))
     except HTTPException:
         raise
-    except Exception:
-        # DB unreachable — fall back to token claims rather than lock everyone out
-        return User(id=int(uid), username=p.get("username", ""), groups=list(p.get("groups", [])))
+    except Exception as e:
+        _logger.warning("auth user lookup failed: %s", e)
+        raise HTTPException(503, f"database unavailable: {e}") from e
+    if not row:
+        raise HTTPException(401, "user no longer exists")
+    return User(id=int(uid), username=row[0], groups=jload(row[1]))
 
 
 def default_mode(groups: list[str]) -> str:

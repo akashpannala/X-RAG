@@ -1,15 +1,17 @@
 """L13 multi-agent retrieval — vector + graph + SQL agents (image gated).
 
-Thin but real: vector = dense Qdrant; graph = Kuzu entity→doc resolution with
+Thin but real: vector = dense pgvector; graph = Kuzu entity→doc resolution with
 chunk fetch; SQL = documents-meta matches. Fused by RRF in the graph.
 Image agent activates with a VL model (Phase 3-full hardware).
 """
+import logging
 import re
 
 from backend import l07_storage as store
 from backend.l14_security.acl import groups_filter
 
 _WORD = re.compile(r"[a-zA-Z]{4,}")
+_logger = logging.getLogger(__name__)
 
 
 def vector_agent(query: str, groups: list[str], n: int) -> list[dict]:
@@ -23,7 +25,8 @@ def graph_agent(query: str, groups: list[str], n: int) -> list[dict]:
 
         db = kuzu.Database("data/kuzu/kuzu.db")
         con = kuzu.Connection(db)
-    except Exception:
+    except Exception as e:
+        _logger.warning("graph agent unavailable: %s", e)
         return []
     keywords = {w.lower() for w in _WORD.findall(query)}
     docs: list[str] = []
@@ -33,7 +36,8 @@ def graph_agent(query: str, groups: list[str], n: int) -> list[dict]:
             ename, dname = rows.get_next()
             if any(k in str(ename).lower() for k in keywords) and dname not in docs:
                 docs.append(str(dname))
-    except Exception:
+    except Exception as e:
+        _logger.warning("graph agent query failed: %s", e)
         con.close()
         return []
     hits: list[dict] = []
@@ -52,7 +56,8 @@ def sql_agent(query: str, groups: list[str], n: int) -> list[dict]:
         con = meta_conn("data/meta.db")
         rows = con.execute(
             "SELECT filename, allowed_groups_json FROM documents").fetchall()
-    except Exception:
+    except Exception as e:
+        _logger.warning("sql agent unavailable: %s", e)
         return []
     finally:
         con.close()

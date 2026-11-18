@@ -1,56 +1,48 @@
-"""L16 RECOMP-lite: extractive compression — MiniLM scores sentences, budget kept.
+"""L16 RECOMP-lite: deterministic extractive compression (budget truncation).
 
-Full RECOMP abstractive compressor needs its own fine-tuned model; extractive
-selection with the already-loaded MiniLM gets 80% of the token saving.
-
-`compress_hits()` keeps per-hit doc/chunk_id provenance so the L17
-assembly layer still renders [doc#chunk] citations correctly.
+No local MiniLM sentence scorer on ``aws-deploy``. Each hit gets an equal
+share of the character budget and is truncated on a sentence/word boundary;
+provenance (doc/chunk_id) is preserved so citations still render.
 """
+import logging
 import re
 
+_logger = logging.getLogger(__name__)
 _SENT_RE = re.compile(r"(?<=[.!?])\s+")
 
 
-def _split_sents(text: str) -> list[str]:
-    return [s for s in _SENT_RE.split(text) if len(s.split()) >= 4]
+def _truncate(text: str, budget: int) -> str:
+    if len(text) <= budget:
+        return text
+    head = text[:budget]
+    # Prefer ending on a sentence boundary, then a word boundary.
+    parts = _SENT_RE.split(head)
+    if len(parts) > 1:
+        head = " ".join(parts[:-1])
+    if head:
+        head = head.rsplit(" ", 1)[0] if " " in head else head
+    return head.rstrip()
 
 
 def compress_hits(query: str, hits: list[dict], budget_chars: int = 5500) -> list[dict]:
-    """Ranks all sentences across hits by relevance, then greedily fills per-hit
-    text budgets up to the global budget, keeping provenance intact.
-    """
+    """Fit hits into a global character budget without dropping provenance."""
     if not hits:
         return hits
-    sents: list[tuple[int, str]] = []  # (hit_index, sentence)
-    for hi, h in enumerate(hits):
-        for s in _split_sents(h.get("text", "")):
-            sents.append((hi, s))
-    total_text = sum(len(h.get("text", "")) for h in hits)
-    if total_text <= budget_chars or not sents:
+    total = sum(len(h.get("text", "")) for h in hits)
+    if total <= budget_chars:
         return hits
-    try:
-        from backend.l13_rerank.minilm import get_reranker
-
-        flat = [s for _, s in sents]
-        scores = get_reranker().predict([(query, s) for s in flat])
-    except Exception:
-        # fallback: truncate each hit's text to its share of the budget
-        share = budget_chars // max(1, len(hits))
-        for h in hits:
-            if len(h["text"]) > share:
-                h["text"] = h["text"][:share]
-        return hits
-
-    order = sorted(range(len(sents)), key=lambda i: float(scores[i]), reverse=True)
-    budgets = {i: budget_chars // max(1, len(hits)) for i in range(len(hits))}
-    picked: dict[int, list[str]] = {i: [] for i in range(len(hits))}
-    for idx in order:
-        hi, s = sents[idx]
-        if len(" ".join(picked[hi])) + len(s) + 1 <= budgets[hi]:
-            picked[hi].append(s)
-    out = []
+    share = max(1, budget_chars // len(hits))
+    out: list[dict] = []
+    truncated = 0
     for h in hits:
-        hi = hits.index(h)
-        txt = " ".join(picked[hi]) if picked[hi] else h.get("text", "")[:budgets[hi]]
-        out.append({**h, "text": txt})
+        text = h.get("text", "")
+        new_text = _truncate(text, share)
+        if len(new_text) < len(text):
+            truncated += 1
+        out.append({**h, "text": new_text})
+    if truncated:
+        _logger.info(
+            "compress_hits truncated %d/%d hits to ~%d chars each (query=%r)",
+            truncated, len(hits), share, query[:80],
+        )
     return out

@@ -6,7 +6,9 @@
 
 Provider-pluggable enterprise RAG: upload documents, ask questions, get answers with citations `[doc#chunk]`, and department ACL on every retrieval path.
 
-**Stack:** FastAPI · pgvector (Supabase) or Qdrant · Jina/BGE embeddings · Groq/Ollama LLM · JWT groups (`hr` / `eng` / `public`).
+**Stack:** FastAPI · pgvector (Supabase/Postgres) · Jina/Voyage/Cohere embeddings · Groq/OpenAI/Anthropic LLM · JWT groups (`hr` / `eng` / `public`).
+
+> **Branch `aws-deploy` — API-only, no fallbacks.** This branch removes the local/offline paths to cut the AWS footprint: no Qdrant, no SQLite metadata, no local LLM, no local BGE embeddings, no local MiniLM/BGE rerankers, no HHEM verification. It requires remote LLM + remote embeddings + remote reranker (Jina) + Postgres/Supabase pgvector. Missing models, API limits, and database failures are explicit errors. For local/air-gapped operation use `main`. SPLADE stays local (no API alternative) and the answer cache lives in Postgres.
 
 ---
 
@@ -59,11 +61,13 @@ Everything is deliberately lean: no tracing stack, no separate eval dashboard. A
 - **Cited answers** — every claim traceable to `[doc#chunk]`; click a chip and the source row flashes.
 - **Department ACL enforced before search** — HR documents never enter ENG retrieval; counts, caches, and rank positions included.
 - **Quick / Deep modes** — role-defaulted, override per question (manual toggle, no classifier).
-- **Provider-pluggable** — swap LLM, embeddings, reranker, vector store, or DB in one `.env`.
-- **Remote primary, local fallback** — pgvector/Supabase is used when reachable; otherwise Qdrant/SQLite. Selection happens at boot (`backend/l07_storage/__init__.py`).
+- **API-only by design (`aws-deploy`)** — remote LLM/embeddings/reranker + pgvector only; no local model or store fallbacks.
+- **pgvector-only storage** — Supabase/Postgres holds vectors, metadata, conversations, and the answer cache; Qdrant/SQLite fallbacks removed.
+- **SPLADE stays local** — no API alternative today, so the deep sparse leg remains a local model on EC2.
+- **Explicit failures** — embedding/LLM/rerank model missing, 429/quota limits, and DB missing/unreachable/pgvector-missing surface as warnings + HTTP errors.
 - **Dev-only benchmark** — 80% pass on the bundled `quantum-free-journals` set (see [Evaluation](#evaluation)).
-- **Tests** — 80 unit/integration tests (`pytest`) plus a browser e2e suite (`frontend/e2e.mjs`).
-- **Live AWS deployment** — Docker Compose (`xrag` + Qdrant + Caddy) on EC2, HTTPS at <https://xrag.duckdns.org>.
+- **Tests** — 81 unit/integration tests (`pytest`) plus a browser e2e suite (`frontend/e2e.mjs`).
+- **Live AWS deployment** — Docker Compose (`xrag` + Caddy) on EC2, HTTPS at <https://xrag.duckdns.org>.
 
 **Live demo:** <https://xrag.duckdns.org> · [Swagger](https://xrag.duckdns.org/docs) · [Health](https://xrag.duckdns.org/health)
 
@@ -111,19 +115,17 @@ cd X-RAG
 python3 -m venv .venv
 .venv/bin/pip install --index-url https://download.pytorch.org/whl/cpu torch
 .venv/bin/pip install -r requirements.txt
-cp .env.example .env                 # fill keys / DB_URL as needed
+cp .env.example .env                 # fill remote keys + Supabase DB_URL
 
-# vector store (local default)
-docker run -d --name xrag-qdrant -p 6333:6333 qdrant/qdrant
+# One-time in the database:
+#   CREATE EXTENSION IF NOT EXISTS vector;
 
-# local embeddings (only if EMBED_PROVIDER=bge)
-.venv/bin/hf download BAAI/bge-m3
-
-.venv/bin/python -m backend.run seed  # demo users
-.venv/bin/python -m backend.run       # http://localhost:8001
+.venv/bin/python -m backend.run check  # probes LLM/embed/rerank/Postgres/pgvector
+.venv/bin/python -m backend.run seed   # demo users
+.venv/bin/python -m backend.run        # http://localhost:8001
 ```
 
-The API serves the UI at `/` and Swagger at `/docs` on the same port. Health: `GET /health` → `{"status":"ok", ...}`.
+`check` prints one row per dependency and exits non-zero on failure. The container runs it before seeding, so a missing key or database fails fast with a readable message. The API serves the UI at `/` and Swagger at `/docs` on the same port. Health: `GET /health` → `{"status":"ok", ...}`.
 
 For frontend-only development:
 
@@ -152,7 +154,7 @@ ACL is pre-search: a user's `groups` must intersect the document's `allowed_grou
 
 You will install X-RAG, start it, upload a document, and ask a question that comes back with a **clickable citation** — a chip you can press to see the exact source chunk highlighted in the sidebar.
 
-You need: Python 3.11–3.13, Docker (for Qdrant), and a [Groq API key](https://console.groq.com/keys) (free tier is fine).
+You need: Python 3.11–3.13, a [Groq API key](https://console.groq.com/keys), a [Jina API key](https://jina.ai/embeddings/) (embeddings + rerank), and a Supabase/Postgres database with the `vector` extension. No Docker/Qdrant on this branch.
 
 ### 1. Install
 
@@ -172,22 +174,19 @@ The torch install is CPU-only on purpose — X-RAG does not need a GPU.
 cp .env.example .env
 ```
 
-Paste your Groq key:
+Paste your remote keys and Supabase pooler URL:
 
 ```ini
 LLM_API_KEY=sk-your-groq-key
+EMBED_API_KEY=jina_...
+RERANK_API_KEY=jina_...
+DB_PROVIDER=supabase
+DB_URL=postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require
 ```
 
-Leave everything else at its defaults for now — SQLite for metadata and Qdrant for vectors.
+Enable pgvector once in that database: `CREATE EXTENSION IF NOT EXISTS vector;`
 
-### 3. Fetch the model and start Qdrant
-
-```bash
-.venv/bin/hf download BAAI/bge-m3
-docker run -d --name xrag-qdrant -p 6333:6333 qdrant/qdrant
-```
-
-### 4. Seed users and start the API
+### 3. Seed users and start the API
 
 ```bash
 .venv/bin/python -m backend.run seed
@@ -201,18 +200,18 @@ curl http://localhost:8001/health
 ```
 
 ```json
-{"status":"ok","llm":"groq","vector_store":"qdrant","qdrant":"http://localhost:6333","db":"sqlite"}
+{"status":"ok","llm":"groq","embed":"jina","rerank":"jina","vector_store":"pgvector","db":"supabase"}
 ```
 
-### 5. Open the UI
+### 4. Open the UI
 
 Open <http://localhost:8001> and click the **LUFFY** demo preset to log in. Or run `python3 frontend/serve.py 3000` and open <http://localhost:3000>.
 
-### 6. Upload a document
+### 5. Upload a document
 
 Press the paperclip, pick the bundled `data/uploads/Free Journals.pdf`, keep the pre-checked group chips, and confirm. When ingest finishes the sources rail shows the new row — filename, chunk count, size.
 
-### 7. Ask a question
+### 6. Ask a question
 
 ```text
 What are free journals?
@@ -220,7 +219,7 @@ What are free journals?
 
 The answer arrives with citation chips inline, and the rail marks which sources were used.
 
-### 8. Click a citation
+### 7. Click a citation
 
 Press a chip in the answer. The matching row in the sources rail scrolls into view and flashes — every claim traceable to its source.
 
@@ -236,12 +235,14 @@ Edit `.env`, restart the server. The boot check in the log names the failing pro
 
 | To change | Set |
 |---|---|
-| LLM → local Ollama | `LLM_PROVIDER=ollama`, `LLM_BASE_URL=http://localhost:11434`, `LLM_MODEL=llama3.1:8b-q4_0` |
-| LLM → hosted OpenAI | `LLM_PROVIDER=openai`, `LLM_API_KEY=sk-...` |
-| Embeddings → Jina API | `EMBED_PROVIDER=jina`, `EMBED_BASE_URL=https://api.jina.ai/v1`, `EMBED_API_KEY=jina_...` |
+| LLM → OpenAI | `LLM_PROVIDER=openai`, `LLM_API_KEY=sk-...` |
+| LLM → Anthropic | `LLM_PROVIDER=anthropic`, `LLM_API_KEY=...` |
+| Embeddings → Voyage | `EMBED_PROVIDER=voyage`, `EMBED_BASE_URL=https://api.voyageai.com/v1`, `EMBED_MODEL=voyage-3-large`, `EMBED_API_KEY=...` |
+| Embeddings → Cohere | `EMBED_PROVIDER=cohere`, `EMBED_BASE_URL=https://api.cohere.ai/v1`, `EMBED_MODEL=embed-english-v3.0`, `EMBED_API_KEY=...` |
 | Reranker → Jina | `RERANK_PROVIDER=jina`, `RERANK_API_KEY=...` |
-| Metadata DB → Supabase | `DB_PROVIDER=supabase`, `DB_URL=postgresql://...` (vector store follows: pgvector) |
-| Vector store → Qdrant Cloud | `VECTOR_BASE_URL=https://xxx.qdrant.io`, `VECTOR_API_KEY=...` |
+| Database + vectors → Supabase | `DB_PROVIDER=supabase`, `DB_URL=postgresql://...` (pgvector only) |
+
+Local providers and Qdrant are rejected on this branch — use `main` for those.
 
 Switching the embedding provider changes the vector space — re-upload affected documents (same filename replaces the old vectors automatically).
 
@@ -318,18 +319,18 @@ NEMO_GUARD=0 .venv/bin/python -m backend.l18_verification.benchmark \
 
 ### Deploy on AWS EC2 (API demo)
 
-The reference deployment is live at <https://xrag.duckdns.org>. The AWS deployment is only a demo host. The same image runs air-gapped on a company server with `LLM_PROVIDER=ollama`, `EMBED_PROVIDER=bge`, `DB_PROVIDER=sqlite`, and local Qdrant. On AWS, `.env` points at Groq/Jina/Supabase so the API is reachable from any device.
+The reference deployment is live at <https://xrag.duckdns.org>. On this branch the AWS host is API-only: `.env` points at Groq/Jina/Supabase, and there is no Qdrant container, no SQLite metadata/cache, and no local LLM/embedding/reranker. For an air-gapped company server, use `main`.
 
-**Stack** (`docker-compose.yml`): `xrag` (API + UI) + `qdrant` (fallback) + `caddy` (TLS). Caddy terminates HTTPS and proxies to `xrag:8001`.
+**Stack** (`docker-compose.yml`): `xrag` (API + UI) + `caddy` (TLS). Caddy terminates HTTPS and proxies to `xrag:8001`.
 
 | File | Purpose |
 |---|---|
 | `Dockerfile` | Python 3.13, CPU torch, runtime deps, non-root UID 10001 |
-| `docker-entrypoint.sh` | waits for Qdrant, seeds users, starts the API |
-| `docker-compose.yml` | `xrag` + `qdrant` + `caddy` |
+| `docker-entrypoint.sh` | seeds users, starts the API (no Qdrant wait) |
+| `docker-compose.yml` | `xrag` + `caddy` |
 | `Caddyfile` | HTTPS reverse proxy (200 MB uploads) |
 | `deploy.env.example` | Compose variables template (`DOMAIN`, EBS paths) |
-| `requirements-deploy.txt` | runtime deps (no DeepEval) |
+| `requirements-deploy.txt` | runtime deps (remote providers; no DeepEval/Qdrant/local-ML libs) |
 
 **1. Instance** — `t3.large` (8 GiB) is the minimum for ingest/deep; `t3.xlarge` (16 GiB) if the build runs out of memory. Ubuntu 24.04, 30 GB root + 100 GB gp3 mounted at `/mnt/xrag`. The free-tier `t3.micro` (1 GiB) will OOM — use signup credits or a Spot `t3.large` instead.
 
@@ -343,9 +344,8 @@ The reference deployment is live at <https://xrag.duckdns.org>. The AWS deployme
 sudo apt-get update
 sudo apt-get install -y docker.io docker-compose-v2 git
 sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
-sudo mkdir -p /mnt/xrag/data /mnt/xrag/qdrant /mnt/xrag/models
+sudo mkdir -p /mnt/xrag/data /mnt/xrag/models
 sudo chown -R 10001:10001 /mnt/xrag/data /mnt/xrag/models   # xrag runs as UID 10001
-# qdrant runs as root in its official image, so /mnt/xrag/qdrant needs no chown
 git clone https://github.com/akashpannala/X-RAG.git ~/xrag
 cd ~/xrag
 ```
@@ -367,8 +367,6 @@ RERANK_PROVIDER=jina
 RERANK_API_KEY=...
 DB_PROVIDER=supabase
 DB_URL=postgresql://...:5432/postgres?sslmode=require
-DB_PATH=
-VECTOR_BASE_URL=http://qdrant:6333
 NEMO_GUARD=0
 JWT_SECRET=<random-64-hex>
 SEED=1
@@ -378,7 +376,6 @@ SEED=1
 # deploy.env
 DOMAIN=xrag-<name>.duckdns.org
 XRAG_DATA_DIR=/mnt/xrag/data
-QDRANT_STORAGE_DIR=/mnt/xrag/qdrant
 XRAG_MODELS_DIR=/mnt/xrag/models
 XRAG_PORT=8001
 SEED=1
@@ -433,7 +430,7 @@ Most endpoints require `Authorization: Bearer <token>`.
 `GET /health` — no auth.
 
 ```json
-{"status":"ok","llm":"groq","vector_store":"pgvector","qdrant":"http://localhost:6333","db":"postgres"}
+{"status":"ok","llm":"groq","embed":"jina","rerank":"jina","vector_store":"pgvector","db":"supabase"}
 ```
 
 #### Ingest
@@ -535,26 +532,24 @@ Single source of truth; auto-detected at boot. Template: `.env.example`.
 | `DEFAULT_MODE_BY_GROUP` | `{"hr":"quick","eng":"deep","public":"quick"}` | JSON map |
 | `UPLOAD_DIR` | `data/uploads` | stored files |
 | `NEMO_GUARD` | `1` | `1` enables the Nemo input rail; `0` uses the local regex screen only |
-| `LLM_PROVIDER` | `groq` | `groq \| ollama \| llama.cpp \| openai \| anthropic` |
-| `LLM_BASE_URL` | provider default | resolved per provider (e.g. Ollama `http://localhost:11434`) |
+| `LLM_PROVIDER` | `groq` | `groq \| openai \| anthropic` (remote only) |
+| `LLM_BASE_URL` | provider default | custom gateway URL; Groq defaults to `https://api.groq.com` |
 | `LLM_MODEL` | `openai/gpt-oss-20b` | |
-| `LLM_API_KEY` | — | required for `groq/openai/anthropic` |
-| `EMBED_PROVIDER` | `bge` | `bge \| jina \| voyage \| cohere \| choreo` |
-| `EMBED_BASE_URL` | — | remote providers only |
-| `EMBED_MODEL` | `BAAI/bge-m3` | |
-| `EMBED_API_KEY` | — | remote providers only |
-| `RERANK_PROVIDER` | `minilm` | `minilm \| jina \| bge` (fallback chain: configured → next → MiniLM) |
+| `LLM_API_KEY` | — | **required** |
+| `EMBED_PROVIDER` | `jina` | `jina \| voyage \| cohere` (remote only) |
+| `EMBED_BASE_URL` | Jina default | required for remote providers |
+| `EMBED_MODEL` | `jina-embeddings-v3` | |
+| `EMBED_API_KEY` | — | **required** |
+| `RERANK_PROVIDER` | `jina` | `jina` only |
 | `RERANK_BASE_URL` | `https://api.jina.ai/v1` | |
 | `RERANK_MODEL` | `jina-reranker-m0` | |
-| `RERANK_API_KEY` | — | required for `jina` |
-| `VECTOR_BASE_URL` | `http://localhost:6333` | Qdrant |
-| `VECTOR_API_KEY` | — | Qdrant Cloud |
-| `VECTOR_COLLECTION` | `offline_rag` | |
-| `DB_PROVIDER` | `sqlite` | `sqlite \| postgres \| supabase` |
-| `DB_URL` | — | Postgres DSN; also selects pgvector as the vector store |
-| `DB_PATH` | `data/meta.db` | SQLite path |
+| `RERANK_API_KEY` | — | **required** |
+| `VECTOR_COLLECTION` | `offline_rag` | reserved (pgvector table is `vectors`) |
+| `DB_PROVIDER` | `supabase` | `postgres \| supabase` for deployment (`sqlite` only for tests) |
+| `DB_URL` | — | **required** Postgres DSN; also selects pgvector |
+| `DB_PATH` | `data/meta.db` | test-only SQLite path |
 
-**Storage selection at boot:** pgvector if `DB_PROVIDER` is `postgres|supabase` and `DB_URL` connects; otherwise Qdrant at `VECTOR_BASE_URL`; if neither works the server refuses to start.
+**Storage at boot:** pgvector if `DB_PROVIDER` is `postgres|supabase` and `DB_URL` connects. If the database is missing, unreachable, unauthenticated, or lacks pgvector, the server reports the exact failure and refuses to start. There is no Qdrant/SQLite fallback.
 
 ### Seed users
 
@@ -584,7 +579,7 @@ Everything X-RAG does is one of two pipelines.
 ```text
 connector → doc intelligence (Docling/OCR) → cleaning (dedup, PII redaction)
          → chunking → enrichment (summaries, hypothetical questions, entities)
-         → dense embedding + sparse index → storage (pgvector/Qdrant, BM25, SPLADE, Kuzu)
+         → remote dense embedding + sparse index → storage (pgvector, BM25, SPLADE, Kuzu)
 ```
 
 **Querying** turns a question into a cited answer:
@@ -634,15 +629,15 @@ Cache entries are invalidated by anything that changes the evidence: ingesting a
 
 ### About provider pluggability
 
-One `.env` decides LLM, embeddings, reranker, vector store, and metadata DB. At boot the server runs `check_requirements()`: it probes only the *configured* providers and refuses to start if one fails — checks only, never installs, never silently substitutes. The rerank step is the one place with an explicit fallback chain (configured provider → BGE → MiniLM) because reranking is quality-degrading but non-fatal if degraded; everything else fails loudly instead.
+On `aws-deploy` one `.env` selects only remote services: LLM (Groq/OpenAI/Anthropic), embeddings (Jina/Voyage/Cohere), reranker (Jina), and Postgres/Supabase pgvector. At boot `check_requirements()` probes those services and refuses to start if any fails — checks only, never installs, never substitutes a local model.
 
-Storage is the one exception with a topology fallback: pgvector/Supabase is preferred when configured and reachable, Qdrant is the local fallback. The choice is made once at boot; an empty-but-reachable primary is not treated as a failure.
+There are no fallback chains on this branch. A missing model, auth failure, 429/quota limit, or database that does not exist/is unreachable is logged and returned as an explicit error. SPLADE is the one local model kept, because no API alternative is configured.
 
 ### About what's deliberately left out
 
 Three workstreams were considered and cut: offline evaluation (the spec's removed L21), full observability, and heavyweight guardrails. Each was rejected for the same reason — weight disproportionate to the current scope — and each already has a thin slice covering the 80% case.
 
-**Evaluation.** A real eval harness means a golden question set, retrieval metrics (recall@k, MRR), answer metrics (faithfulness, citation precision), and a regression runner someone maintains on every model or prompt change. That is a second product, not a feature. What exists instead: per-answer runtime verification (`l18_verification` — CoVe-lite checks plus an LLM judge pass, surfaced as the "RAG Verified / Partially Grounded" pill with a supported ratio), a dev-only benchmark (`backend/l18_verification/benchmark.py`) that runs a bundled question set through the real pipeline and writes a pass-rate/latency scorecard to `data/evaluation.md`, plus 80 unit/integration tests and a browser suite pinning current behavior. Build the full harness (retrieval recall@k, MRR, a CI regression runner) when answers start changing for reasons nobody can explain — that is the signal the thin slice stopped being enough.
+**Evaluation.** A real eval harness means a golden question set, retrieval metrics (recall@k, MRR), answer metrics (faithfulness, citation precision), and a regression runner someone maintains on every model or prompt change. That is a second product, not a feature. What exists instead: per-answer runtime verification (`l18_verification` — CoVe-lite checks plus an LLM judge pass, surfaced as the "RAG Verified / Partially Grounded" pill with a supported ratio), a dev-only benchmark (`backend/l18_verification/benchmark.py`) that runs a bundled question set through the real pipeline and writes a pass-rate/latency scorecard to `data/evaluation.md`, plus 81 unit/integration tests and a browser suite pinning current behavior. Build the full harness (retrieval recall@k, MRR, a CI regression runner) when answers start changing for reasons nobody can explain — that is the signal the thin slice stopped being enough.
 
 **Observability.** Full tracing (per-request stage timings, token/cost accounting, dashboards, alerting) needs infrastructure that costs more attention than the app it watches at this scale. What exists instead: rotating file logs (`data/logs/api.log`), the `/health` endpoint (provider, vector store, DB in one JSON), the answer cache as a query log, and the `conversations` table (who asked what, when, with which citations — a usable audit trail). When a user reports a bad answer, that trail plus the log is enough to replay it.
 
@@ -659,27 +654,27 @@ backend/
   l03_cleaning/       MinHash dedup + Presidio PII
   l04_chunking/       8 chunking strategies
   l05_enrichment/     RAPTOR-lite + hypothetical questions + NER
-  l06_embedding/      dense embeddings (BGE/Jina/Voyage/Cohere)
-  L06_sparse/         BM25S + SPLADE-v3 (gated)
-  l07_storage/        pgvector (primary) / Qdrant (fallback) + Kuzu
-  l08_freshness/      sha256 + meta DB (users/documents/conversations)
+  l06_embedding/      dense embeddings (remote Jina/Voyage/Cohere)
+  L06_sparse/         BM25S + SPLADE-v3 (local, no API alternative)
+  l07_storage/        pgvector only + Kuzu
+  l08_freshness/      sha256 + meta DB (Postgres/Supabase)
   l09_toggle/         quick/deep mode
   l10_memory/         conversation memory rewrite
   l11_transforms/     multi-query, step-back, HyDE
   l12_agents/         vector/graph/SQL/image retrieval agents
-  l13_rerank/         RRF + MiniLM + Jina/BGE fallback + RankGPT + MMR
+  l13_rerank/         RRF + Jina API rerank + RankGPT + MMR (remote embeddings)
   l14_security/       JWT, ACL, injection screen, Nemo rail
-  l15_compression/    extractive budget optimizer
+  l15_compression/    deterministic truncation budget (no local scorer)
   l16_assembly/       prompt assembly + citation tags
-  l17_generation/     Self-RAG/CRAG generation + answer()
-  l18_verification/   CoVe-lite verification + dev benchmark
-  l19_cache/          answer cache (cosine > 0.96) + LRU
+  l17_generation/     Self-RAG/CRAG generation + answer() (remote LLM)
+  l18_verification/   LLM-only sentence verification + dev benchmark
+  l19_cache/          Postgres/Supabase answer cache (cosine > 0.96) + LRU
   run.py              boot checks → serve / seed
 frontend/             static UI (index.html, chat.html, app.js, e2e.mjs)
 data/                 uploads, indexes, logs, evaluation artifacts
 tests/                pytest suite
 Dockerfile            API image (CPU torch, non-root UID 10001)
-docker-compose.yml    xrag + qdrant + caddy
+docker-compose.yml    xrag + caddy
 Caddyfile             HTTPS reverse proxy for the AWS demo
 deploy.env.example    Compose variables template (DOMAIN, EBS paths)
 LICENSE               MIT

@@ -1,6 +1,11 @@
-"""Reranker provider abstraction: Jina API → Local BGE-reranker → Local MiniLM."""
+"""Reranker provider — Jina API only. No local BGE/MiniLM fallback."""
 import logging
 from typing import List, Tuple
+
+import httpx
+
+from backend.config import _resolve_rerank_url, settings
+from backend.errors import ConfigError, classify_provider_error
 
 _logger = logging.getLogger(__name__)
 
@@ -14,69 +19,35 @@ class JinaReranker:
         self.api_key = api_key
 
     def rerank(self, query: str, docs: List[str], top_n: int) -> List[Tuple[int, float]]:
-        import httpx
-
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
-        payload = {
-            "query": query,
-            "documents": docs,
-            "top_n": top_n,
-            "model": self.model,
-        }
+        payload = {"query": query, "documents": docs, "top_n": top_n, "model": self.model}
         try:
-            r = httpx.post(
-                f"{self.base_url}/rerank",
-                json=payload,
-                headers=headers,
-                timeout=30,
-            )
+            r = httpx.post(f"{self.base_url}/rerank", json=payload, headers=headers, timeout=30)
             r.raise_for_status()
             data = r.json()
-            results = data.get("results", [])
-            return [(item["index"], float(item["relevance_score"])) for item in results]
         except Exception as e:
             _logger.warning("Jina rerank API failed: %s", e)
-            raise
+            raise classify_provider_error(
+                e, kind="Rerank", provider="jina", model=self.model
+            ) from e
+        results = data.get("results", [])
+        return [(item["index"], float(item["relevance_score"])) for item in results]
 
 
-class LocalCrossEncoder:
-    """Local sentence-transformers CrossEncoder (BGE-reranker or MiniLM)."""
-
-    def __init__(self, model_name: str):
-        self.model_name = model_name
-        self._encoder = None
-
-    def _get_encoder(self):
-        if self._encoder is None:
-            from sentence_transformers import CrossEncoder
-
-            self._encoder = CrossEncoder(self.model_name)
-        return self._encoder
-
-    def rerank(self, query: str, docs: List[str], top_n: int) -> List[Tuple[int, float]]:
-        encoder = self._get_encoder()
-        scores = encoder.predict([(query, d) for d in docs])
-        ranked = sorted(enumerate(scores), key=lambda x: float(x[1]), reverse=True)
-        return ranked[:top_n]
-
-
-def get_reranker_provider():
-    """Factory with fallback chain: Jina API → Local BGE-reranker → Local MiniLM."""
-    from backend.config import settings
-
-    # 1. Jina API
-    if settings.rerank_provider == "jina" and settings.rerank_api_key:
-        try:
-            return JinaReranker(settings.rerank_base_url, settings.rerank_model, settings.rerank_api_key)
-        except Exception as e:
-            _logger.warning("JinaReranker init failed, falling back: %s", e)
-
-    # 2. Local BGE-reranker (fallback for jina, or explicit bge)
-    if settings.rerank_provider in ("bge", "jina"):
-        try:
-            return LocalCrossEncoder("BAAI/bge-reranker-v2-m3")
-        except Exception as e:
-            _logger.warning("Local BGE-reranker init failed, falling back: %s", e)
-
-    # 3. Local MiniLM (final fallback)
-    return LocalCrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+def get_reranker_provider() -> JinaReranker:
+    """Return the remote reranker. Raises instead of degrading to a local model."""
+    provider = (settings.rerank_provider or "").strip().lower()
+    if provider != "jina":
+        raise ConfigError(
+            f"Unsupported RERANK_PROVIDER={settings.rerank_provider!r}",
+            hint="aws-deploy supports the Jina rerank API only",
+        )
+    if not settings.rerank_api_key:
+        raise ConfigError(
+            "RERANK_API_KEY is required for the Jina reranker",
+            hint="set RERANK_API_KEY in .env (no local reranker fallback)",
+        )
+    url = _resolve_rerank_url()
+    if not url:
+        raise ConfigError("RERANK_BASE_URL is required for the Jina reranker")
+    return JinaReranker(url, settings.rerank_model, settings.rerank_api_key)

@@ -4,8 +4,7 @@ from backend.l14_security.acl import allowed, groups_filter
 
 def test_groups_filter_shape():
     f = groups_filter(["hr", "public"])
-    assert f.must[0].key == "allowed_groups"
-    assert list(f.must[0].match.any) == ["hr", "public"]
+    assert f == {"groups": ["hr", "public"]}
 
 
 def test_allowed_intersection():

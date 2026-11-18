@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from backend.config import settings
+from backend.errors import XRAGError
 from backend.l01_connectors.loaders import check_supported, is_image
 from backend.l02_docintel.docling import parse as docling_parse
 from backend.l03_cleaning.cleaning import redact
@@ -68,11 +69,19 @@ app.add_middleware(
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 
 
+def _meta():
+    """Postgres/Supabase connection with explicit API errors (no fallback)."""
+    try:
+        return meta_conn(settings.db_path)
+    except XRAGError as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e)) from e
+
+
 @app.get("/health")
 def health():
-    vs = "pgvector" if "pgvector" in store.search.__module__ else "qdrant"
-    return {"status": "ok", "llm": settings.llm_provider, "vector_store": vs,
-            "qdrant": settings.vector_base_url, "db": "postgres" if settings.db_url else "sqlite"}
+    return {"status": "ok", "llm": settings.llm_provider,
+            "embed": settings.embed_provider, "rerank": settings.rerank_provider,
+            "vector_store": "pgvector", "db": settings.db_provider}
 
 
 @app.post("/auth/register")
@@ -192,7 +201,11 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
         splade_delete(dest.stem)
     except Exception as e:
         log.warning("splade delete(%s) failed: %s", dest.stem, e)
-    store.add_docs(texts, payloads, vectors)
+    try:
+        store.add_docs(texts, payloads, vectors)
+    except XRAGError as e:
+        log.warning("vector store ingest failed: %s", e)
+        raise HTTPException(status_code=e.status_code, detail=str(e)) from e
     try:
         from backend.L06_sparse.bm25 import add as bm25_add
 
@@ -214,7 +227,7 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
             record_ent(dest.stem, ent, label)
     except Exception:
         pass
-    con = meta_conn(settings.db_path)
+    con = _meta()
     ph = _ph_n(con, 4)
     con.execute(f"""
         INSERT INTO documents(filename, allowed_groups_json, hash, chunks) VALUES ({ph})
@@ -226,7 +239,10 @@ def ingest(f: UploadFile, allowed_groups: str = "public", enrich: bool = True,
                 (f.filename, jdump(groups), h, len(texts)))
     con.commit()
     con.close()
-    clear_cache()  # vectors changed — cached answers may cite stale permissions
+    try:
+        clear_cache()  # vectors changed — cached answers may cite stale permissions
+    except Exception as e:
+        log.warning("answer cache clear failed: %s", e)
     return IngestResponse(filename=f.filename, chunks=len(texts), hash=h[:12])
 
 
@@ -235,9 +251,12 @@ def query(req: QueryRequest, user: User = Depends(current_user)):
     try:
         text, cites, contexts, mode, hit, verif = answer(
             req.query, req.top_k, user.groups, req.mode, user.id)
+    except XRAGError as e:
+        log.warning("query failed: %s", e)
+        raise HTTPException(status_code=e.status_code, detail=str(e)) from e
     except Exception as e:
         log.exception("query failed")
-        raise HTTPException(status_code=502, detail=f"LLM provider error: {e}") from e
+        raise HTTPException(status_code=502, detail=f"query provider error: {e}") from e
     return QueryResponse(answer=text, citations=cites, provider=settings.llm_provider,
                          mode=mode, cache_hit=hit, verification=verif)
 
@@ -245,7 +264,7 @@ def query(req: QueryRequest, user: User = Depends(current_user)):
 @app.get("/documents")
 def list_documents(user: User = Depends(current_user)):
     """Docs visible to the caller's groups — same ACL as retrieval (pre-search filter)."""
-    con = meta_conn(settings.db_path)
+    con = _meta()
     try:
         rows = con.execute(
             "SELECT filename, allowed_groups_json, hash, chunks FROM documents ORDER BY id DESC"
@@ -273,7 +292,7 @@ def delete_document(filename: str, user: User = Depends(current_user)):
     ACL: caller's groups must intersect the doc's groups (same as listing/retrieval)."""
     if Path(filename).name != filename:
         raise HTTPException(400, "invalid filename")
-    con = meta_conn(settings.db_path)
+    con = _meta()
     try:
         ph = _ph_n(con, 1)
         rows = con.execute(
@@ -304,14 +323,17 @@ def delete_document(filename: str, user: User = Depends(current_user)):
         (Path(settings.upload_dir) / filename).unlink(missing_ok=True)
     except OSError as e:
         log.warning("unlink(%s) failed: %s", filename, e)
-    clear_cache()  # cached answers may cite this doc's chunks
+    try:
+        clear_cache()  # cached answers may cite this doc's chunks
+    except Exception as e:
+        log.warning("answer cache clear failed: %s", e)
     return {"deleted": filename}
 
 
 @app.get("/conversations")
 def list_conversations(user: User = Depends(current_user)):
     """Caller's own chat history, newest first."""
-    con = meta_conn(settings.db_path)
+    con = _meta()
     try:
         ph = _ph_n(con, 1)
         rows = con.execute(
@@ -328,7 +350,7 @@ def list_conversations(user: User = Depends(current_user)):
 @app.delete("/conversations/{conv_id}")
 def delete_conversation(conv_id: int, user: User = Depends(current_user)):
     """Delete one of the caller's own conversations (404 if not theirs / missing)."""
-    con = meta_conn(settings.db_path)
+    con = _meta()
     try:
         cur = con.execute(
             f"DELETE FROM conversations WHERE id={_ph_n(con, 1)} AND user_id={_ph_n(con, 1)}",

@@ -1,61 +1,32 @@
-"""L7 Storage factory — API first (Supabase pgvector) → Local fallback (Qdrant)."""
+"""L7 Storage — pgvector only (Supabase/Postgres). No local Qdrant fallback."""
 from backend.config import settings
+from backend.errors import ConfigError, XRAGError, classify_db_error
 
 
-def _try_pgvector():
-    """Try Supabase pgvector first (API)."""
-    if settings.db_provider in ("postgres", "supabase") and settings.db_url:
-        try:
-            import psycopg
-            from pgvector.psycopg import register_vector
-
-            conn = psycopg.connect(settings.db_url, connect_timeout=5)
-            register_vector(conn)
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-            conn.close()
-            from backend.l07_storage.pgvector import (
-                add_docs,
-                delete_doc,
-                search,
-                fetch_by_doc,
-                reset_collection,
-            )
-            return add_docs, delete_doc, search, fetch_by_doc, reset_collection
-        except Exception:
-            return None
-
-
-def _try_qdrant():
-    """Try Qdrant local/Cloud second (fallback)."""
+def _load_pgvector():
+    if not settings.is_postgres or not settings.db_url:
+        raise ConfigError(
+            "pgvector requires DB_PROVIDER=postgres|supabase and DB_URL",
+            hint="aws-deploy is pgvector-only; set Supabase/Postgres in .env",
+        )
     try:
-        from qdrant_client import QdrantClient
-
-        kwargs = {"url": settings.vector_base_url}
-        if settings.vector_api_key:
-            kwargs["api_key"] = settings.vector_api_key
-        QdrantClient(**kwargs).get_collections()
-        from backend.l07_storage.qdrant import (
+        from backend.l07_storage.pgvector import (
             add_docs,
             delete_doc,
-            search,
             fetch_by_doc,
             reset_collection,
+            search,
         )
-        return add_docs, delete_doc, search, fetch_by_doc, reset_collection
-    except Exception:
-        return None
+        from backend.l07_storage.pgvector import _conn
+
+        _conn()  # fail fast with an actionable DB/pgvector error
+    except XRAGError:
+        raise
+    except Exception as e:
+        raise classify_db_error(e) from e
+    return add_docs, delete_doc, search, fetch_by_doc, reset_collection
 
 
-# Try API first (Supabase pgvector), then local Qdrant
-_pgvector = _try_pgvector()
-if _pgvector:
-    add_docs, delete_doc, search, fetch_by_doc, reset_collection = _pgvector
-else:
-    _qdrant = _try_qdrant()
-    if _qdrant:
-        add_docs, delete_doc, search, fetch_by_doc, reset_collection = _qdrant
-    else:
-        raise RuntimeError("No vector store available (tried Supabase pgvector, then Qdrant)")
+add_docs, delete_doc, search, fetch_by_doc, reset_collection = _load_pgvector()
 
 __all__ = ["add_docs", "delete_doc", "search", "fetch_by_doc", "reset_collection"]

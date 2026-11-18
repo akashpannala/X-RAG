@@ -11,6 +11,7 @@ from psycopg.rows import dict_row
 from pgvector.psycopg import register_vector
 
 from backend.config import settings
+from backend.errors import ConfigError, XRAGError, classify_db_error
 from backend.l06_embedding.bge import get_embeddings
 
 _logger = logging.getLogger(__name__)
@@ -70,31 +71,44 @@ def _conn():
             _reset_conn()
     db_url = settings.db_url or ""
     if not db_url.startswith("postgresql://") and not db_url.startswith("postgres://"):
-        raise RuntimeError("DATABASE_URL must be postgresql:// for pgvector")
-    _conn_singleton = psycopg.connect(db_url, row_factory=dict_row, connect_timeout=10)
-    _tune(_conn_singleton)
-    register_vector(_conn_singleton)
-    _ensure_schema(_conn_singleton)
+        raise ConfigError(
+            "DB_URL must be a postgresql:// URL for pgvector",
+            hint="aws-deploy is pgvector-only; use the Supabase IPv4 pooler URL",
+        )
+    try:
+        _conn_singleton = psycopg.connect(db_url, row_factory=dict_row, connect_timeout=10)
+        _tune(_conn_singleton)
+        _ensure_schema(_conn_singleton)  # extension + tables before type registration
+        register_vector(_conn_singleton)
+    except XRAGError:
+        _reset_conn()
+        raise
+    except Exception as e:
+        _reset_conn()
+        raise classify_db_error(e) from e
     return _conn_singleton
 
 
 def _ensure_schema(conn) -> None:
-    with conn.cursor() as cur:
-        cur.execute(f"""
-            CREATE EXTENSION IF NOT EXISTS vector;
-            CREATE TABLE IF NOT EXISTS {TABLE} (
-                id UUID PRIMARY KEY,
-                doc TEXT NOT NULL,
-                chunk_id INTEGER NOT NULL,
-                text TEXT NOT NULL,
-                allowed_groups JSONB NOT NULL DEFAULT '[]'::jsonb,
-                embedding VECTOR(1024)
-            );
-            CREATE INDEX IF NOT EXISTS {TABLE}_embedding_idx ON {TABLE} USING hnsw (embedding vector_cosine_ops);
-            CREATE INDEX IF NOT EXISTS {TABLE}_doc_idx ON {TABLE} (doc);
-            CREATE INDEX IF NOT EXISTS {TABLE}_groups_idx ON {TABLE} USING GIN (allowed_groups);
-        """)
-        conn.commit()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(f"""
+                CREATE EXTENSION IF NOT EXISTS vector;
+                CREATE TABLE IF NOT EXISTS {TABLE} (
+                    id UUID PRIMARY KEY,
+                    doc TEXT NOT NULL,
+                    chunk_id INTEGER NOT NULL,
+                    text TEXT NOT NULL,
+                    allowed_groups JSONB NOT NULL DEFAULT '[]'::jsonb,
+                    embedding VECTOR(1024)
+                );
+                CREATE INDEX IF NOT EXISTS {TABLE}_embedding_idx ON {TABLE} USING hnsw (embedding vector_cosine_ops);
+                CREATE INDEX IF NOT EXISTS {TABLE}_doc_idx ON {TABLE} (doc);
+                CREATE INDEX IF NOT EXISTS {TABLE}_groups_idx ON {TABLE} USING GIN (allowed_groups);
+            """)
+            conn.commit()
+    except Exception as e:
+        raise classify_db_error(e) from e
 
 
 def add_docs(texts: list[str], payloads: list[dict], vectors: list[list[float]] | None = None) -> None:
@@ -127,7 +141,7 @@ def add_docs(texts: list[str], payloads: list[dict], vectors: list[list[float]] 
                 last = e
                 _logger.warning("add_docs attempt %d failed: %s", attempt, e)
                 _reset_conn()
-    raise last
+    raise classify_db_error(last) from last
 
 
 def delete_doc(doc: str) -> None:
@@ -145,46 +159,45 @@ def delete_doc(doc: str) -> None:
                 last = e
                 _logger.warning("delete_doc attempt %d failed: %s", attempt, e)
                 _reset_conn()
-    raise last
+    raise classify_db_error(last) from last
 
 
 def search(query: str, top_k: int, qfilter: object | None = None) -> list[dict]:
-    """qfilter can be Qdrant Filter (from groups_filter) or dict with 'doc'/'groups'."""
-    try:
-        qv = get_embeddings(settings.embed_model).embed_query(query)
-        with _lock:
+    """qfilter is a dict ``{"groups": [...], "doc": ...}`` from groups_filter()."""
+    qv = get_embeddings(settings.embed_model).embed_query(query)
+    with _lock:
+        try:
             conn = _conn()
-            with conn.cursor() as cur:
-                where_clauses = []
-                filter_params: list = []
+        except Exception as e:
+            raise classify_db_error(e) from e
+        with conn.cursor() as cur:
+            where_clauses = []
+            filter_params: list = []
 
-                # Extract groups from Qdrant Filter if passed
-                groups = None
-                doc = None
-                if qfilter is not None:
-                    # Qdrant Filter object from groups_filter()
-                    if hasattr(qfilter, "must"):
-                        for cond in qfilter.must or []:
-                            if hasattr(cond, "key") and cond.key == "allowed_groups" and hasattr(cond, "match"):
-                                match = cond.match
-                                if hasattr(match, "any"):
-                                    groups = list(match.any)
-                    # Dict format
-                    elif isinstance(qfilter, dict):
-                        groups = qfilter.get("groups")
-                        doc = qfilter.get("doc")
+            groups = None
+            doc = None
+            if isinstance(qfilter, dict):
+                groups = qfilter.get("groups")
+                doc = qfilter.get("doc")
+            elif qfilter is not None and hasattr(qfilter, "must"):
+                # Backwards-compatible with pre-aws-deploy Qdrant-shaped filters
+                for cond in qfilter.must or []:
+                    match = getattr(cond, "match", None)
+                    if getattr(cond, "key", None) == "allowed_groups" and hasattr(match, "any"):
+                        groups = list(match.any)
 
-                if doc:
-                    where_clauses.append("doc = %s")
-                    filter_params.append(doc)
-                if groups:
-                    placeholders = ",".join(["%s"] * len(groups))
-                    where_clauses.append(f"allowed_groups ?| ARRAY[{placeholders}]")
-                    filter_params.extend(groups)
+            if doc:
+                where_clauses.append("doc = %s")
+                filter_params.append(doc)
+            if groups:
+                placeholders = ",".join(["%s"] * len(groups))
+                where_clauses.append(f"allowed_groups ?| ARRAY[{placeholders}]")
+                filter_params.extend(groups)
 
-                where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
-                qv_s = str(qv)
-                params = [qv_s] + filter_params + [qv_s, top_k]
+            where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+            qv_s = str(qv)
+            params = [qv_s] + filter_params + [qv_s, top_k]
+            try:
                 cur.execute(
                     f"""
                     SELECT doc, chunk_id, text, 1 - (embedding <=> %s::vector) AS score
@@ -196,9 +209,8 @@ def search(query: str, top_k: int, qfilter: object | None = None) -> list[dict]:
                     params,
                 )
                 rows = cur.fetchall()
-    except Exception as e:
-        _logger.warning("pgvector search failed -> []: %s", e)
-        return []
+            except Exception as e:
+                raise classify_db_error(e) from e
 
     return [
         {"doc": r["doc"], "chunk_id": r["chunk_id"], "text": r["text"], "score": float(r["score"])}
@@ -208,29 +220,36 @@ def search(query: str, top_k: int, qfilter: object | None = None) -> list[dict]:
 
 def fetch_by_doc(doc: str, groups: list[str], n: int) -> list[dict]:
     """Top-n chunks of one doc, ACL-respecting."""
-    try:
-        with _lock:
+    with _lock:
+        try:
             conn = _conn()
-            with conn.cursor() as cur:
-                params = [doc]
-                where = "WHERE doc = %s"
-                if groups:
-                    placeholders = ",".join(["%s"] * len(groups))
-                    where += f" AND allowed_groups ?| ARRAY[{placeholders}]"
-                    params.extend(groups)
+        except Exception as e:
+            raise classify_db_error(e) from e
+        with conn.cursor() as cur:
+            params = [doc]
+            where = "WHERE doc = %s"
+            if groups:
+                placeholders = ",".join(["%s"] * len(groups))
+                where += f" AND allowed_groups ?| ARRAY[{placeholders}]"
+                params.extend(groups)
+            try:
                 cur.execute(
                     f"SELECT doc, chunk_id, text FROM {TABLE} {where} LIMIT %s",
                     params + [n],
                 )
                 rows = cur.fetchall()
-    except Exception:
-        return []
+            except Exception as e:
+                raise classify_db_error(e) from e
     return [{"doc": r["doc"], "chunk_id": r["chunk_id"], "text": r["text"], "score": 0.5} for r in rows]
 
 
 def reset_collection() -> None:
     with _lock:
-        conn = _conn()
+        try:
+            conn = _conn()
+        except Exception as e:
+            raise classify_db_error(e) from e
         with conn.cursor() as cur:
             cur.execute(f"DROP TABLE IF EXISTS {TABLE}")
             conn.commit()
+        _ensure_schema(conn)  # leave a usable empty table behind

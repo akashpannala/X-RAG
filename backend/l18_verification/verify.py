@@ -1,34 +1,13 @@
-"""L19 verification — HHEM NLI + CoVe-lite + sentence labels (deep mode).
+"""L19 verification — LLM sentence labels (deep mode).
 
-Each answer sentence is scored against retrieved contexts: Supported /
-Unsupported / Contradicted. HHEM is a local CrossEncoder (400MB); if its
-weights are absent the step degrades to an LLM judges-pass with the same
-label contract. CoVe-lite: answers a verification question per claim.
+Local HHEM/CrossEncoder is removed on ``aws-deploy``; verification uses the
+remote LLM judges-pass only. Each answer sentence is labelled Supported /
+Unsupported / Contradicted against the retrieved contexts.
 """
+import logging
 import re
 
-_hhem = None
-_hhem_failed = False  # cache the known-broken state so we don't re-attempt every call
-
-
-def get_hhem(name: str = "vectara/hallucination_evaluation_model"):
-    """HHEM-local is parked: weights are cached (419MB) but unloadable —
-    CrossEncoder path hits a custom-class/transformers-5.x incompatibility
-    (all_tied_weights_keys), and the repo ships no tokenizer files
-    (needs deberta-v3-base tokenizer + relative-import shim). The LLM
-    judge below carries verification until upstream stabilizes."""
-    global _hhem, _hhem_failed
-    if _hhem_failed:
-        raise RuntimeError("hhem known-unavailable (cached failure)")
-    if _hhem is None:
-        try:
-            from sentence_transformers import CrossEncoder
-
-            _hhem = CrossEncoder(name)
-        except Exception:
-            _hhem_failed = True
-            raise
-    return _hhem
+_logger = logging.getLogger(__name__)
 
 
 def split_sentences(text: str) -> list[str]:
@@ -36,25 +15,8 @@ def split_sentences(text: str) -> list[str]:
     return [p for p in parts if len(p.split()) >= 4]
 
 
-def hhem_score(premise_texts: list[str], hypothesis: str) -> float:
-    """Scalar faithfulness score for one (premise, hypothesis) pair.
-
-    Returns -1.0 on any failure; callers treat <0 as "unavailable".
-    """
-    premise = " ".join(premise_texts)[:4000]
-    try:
-        return float(get_hhem().predict([(premise, hypothesis)])[0])
-    except Exception:
-        return -1.0
-
-
-def hhem_scores(premise_texts: list[str], hypothesis: str) -> list[float]:
-    # retained for call-site compatibility; always a single-element list here
-    return [hhem_score(premise_texts, hypothesis)]
-
-
 def llm_labels(answer: str, contexts: list[str]) -> list[tuple[str, str]]:
-    """Fallback + CoVe second opinion: LLM labels each sentence."""
+    """LLM labels each sentence against the retrieved context."""
     from backend.l17_generation.llm import get_llm
 
     sents = split_sentences(answer)
@@ -75,20 +37,18 @@ def llm_labels(answer: str, contexts: list[str]) -> list[tuple[str, str]]:
 
 
 def verify(answer: str, contexts: list[str]) -> dict:
-    """Returns {labels: [(sentence, label)], supported_ratio: float}."""
+    """Returns {labels: [(sentence, label)], supported_ratio: float}.
+
+    A verifier failure returns ``supported_ratio=-1.0`` (unavailable) instead
+    of failing the whole answer — the caller logs a warning.
+    """
     sents = split_sentences(answer)
     if not sents or not contexts:
         return {"labels": [(s, "Unsupported") for s in sents], "supported_ratio": 0.0}
     try:
-        get_hhem()
-        labels = []
-        for s in sents:
-            sc = hhem_scores(contexts, s)[0]
-            if sc < 0:
-                raise RuntimeError("hhem unavailable")
-            label = "Supported" if sc > 0.5 else ("Contradicted" if sc < 0.1 else "Unsupported")
-            labels.append((s, label))
-    except Exception:
         labels = llm_labels(answer, contexts)
-    supported = sum(1 for _, l in labels if l == "Supported")
+    except Exception as e:
+        _logger.warning("LLM verification unavailable: %s", e)
+        return {"labels": [(s, "Unsupported") for s in sents], "supported_ratio": -1.0}
+    supported = sum(1 for _, label in labels if label == "Supported")
     return {"labels": labels, "supported_ratio": supported / max(1, len(labels))}
